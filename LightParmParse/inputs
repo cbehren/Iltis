@@ -1,0 +1,5 @@
+test.string = "we have to see if this works"
+test.double = 10.42
+test.double_array = 0.1 0.2 0.3
+test.int = 1
+test.int_array = 10 10 10 42

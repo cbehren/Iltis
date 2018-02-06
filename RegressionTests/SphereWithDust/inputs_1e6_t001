@@ -1,0 +1,19 @@
+shell.inner_radius=0.0
+shell.outer_radius=0.1
+boxsize = 3.086e19 #cm (0.1 kpc)
+shell.max_step = 1.0
+redshift = 0.0
+no_hubble_flow = true
+rng.seed = 1234
+shell.density = 0.174598691135 #cm^-3 #the 1e6=tau case
+shell.density_dust = 4.29083779123e-26 #g/cm^-3, corresponding to tauD = 0.1
+#shell.column_density_dust = 0.0
+shell.outflow_velocity = 0.0 #cm/s
+shell.temperature = 10.0 # K
+number_of_photons = 10000
+use_peeling_off = true
+max_num_peeling_off_photons = 1000000
+line_of_sight = 0 1 0
+dust.model = Dahlia
+
+dust.albedo=0.0 

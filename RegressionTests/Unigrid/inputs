@@ -1,0 +1,14 @@
+dataset_type = Unigrid
+unigrid.filename = grid.dat
+boxsize = 3.086e21 #cm
+redshift = 0.0
+rng.seed = 123
+no_hubble_flow = true
+output.do_slices = true
+use_peeling_off = true
+number_of_instruments = 1
+line_of_sight = 1 0 0
+number_of_photons = 4000
+verbosity = 10
+max_step = 1.0e-3
+
