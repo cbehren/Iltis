@@ -934,7 +934,7 @@ void Parallel::Gatherv (double* sendbuf,
                   int   root)
 {
     
-    for (int i = 0; i < sendsend; ++i)
+    for (int i = 0; i < sendcount; ++i)
         recvbuf[i] = sendbuf[i];
 }
 
@@ -945,7 +945,7 @@ void Parallel::Gatherv (int* sendbuf,
                   int   root)
 {
     
-    for (int i = 0; i < sendsend; ++i)
+    for (int i = 0; i < sendcount; ++i)
         recvbuf[i] = sendbuf[i];
 }
 
@@ -956,7 +956,7 @@ void Parallel::Gatherv (long* sendbuf,
                   int   root)
 {
     
-    for (int i = 0; i < sendsend; ++i)
+    for (int i = 0; i < sendcount; ++i)
         recvbuf[i] = sendbuf[i];
 }
 void
