@@ -21,7 +21,7 @@ public:
     //write out properties of peeling off photons
     virtual void writePeelingOff(BaseParticle &p,int index);
     //write out a slice through the hydro data (for debugging purposes)
-    virtual void writeSlices(const BaseDataset& ds);
+    virtual void writeSlices(const BaseDataset& ds, std::string snap_time);
     //same, but for distributed data. TODO should be private
     virtual void writeSlicesParallel(const BaseDataset& ds);
     //close and combine all relevant output files.

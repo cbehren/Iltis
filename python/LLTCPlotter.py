@@ -1,13 +1,21 @@
 import sys
 from params_file import params_file
-from pymses import RamsesOutput
+import warnings
+try:
+  from pymses import RamsesOutput
+except ImportError:
+  warnings.warn('pymses not imported')
 import numpy as np
 import subprocess
 import os
 import tempfile
 import astropy.units as u
 #needs to refer to the path where plotter.exe is located
-ABSPATH = "/astro/home/christoph.behrens/LLTC/"
+ABSPATH = os.path.dirname(os.path.realpath(__file__))
+ABSPATH = ABSPATH[0:ABSPATH.rfind('python')]
+if(not os.path.exists(ABSPATH+'/plotter.exe')):
+  warnings.warn('plotter.exe not found at '+ABSPATH)
+
 class LLTCPlotter(object):
     def __init__(self,finputs,params,dry=False):
         self.check_sufficient(params)
@@ -53,6 +61,9 @@ class LLTCPlotter(object):
             if(key is "operators"):
                 for operator in self.params["operators"]:
                     args.append("plotter.operator="+operator)
+            if(key is "override"):
+                for parameter in self.params["override"]:
+                    args.append(parameter+"="+self.params["override"][parameter])
             else:
                 args.append("plotter."+key+"="+value)
         return args        
@@ -69,6 +80,7 @@ class LLTCPlotter(object):
         stdout,stderr = p.communicate()
         #print "stdout",stdout
         if(stderr is not ""):
+            print "stdout",stdout
             print "stderr",stderr
         #collect the data.
         for operator in self.params["operators"]:
@@ -80,7 +92,12 @@ class LLTCPlotter(object):
                     d = np.loadtxt(path).T
                     grid.append(d)
                 d = grid
-                
+            elif("slice" in operator):
+                d = {}
+                for var in ["density","temperature","velocity_x","velocity_y","velocity_z","dust_density","dx"]:
+                    path = self.params["output_prefix"]+operator+"_"+var
+                    #CAUTION need to transpose here
+                    d[var] = np.loadtxt(path).T   
             else:
                 path = self.params["output_prefix"]+operator
                 #CAUTION need to transpose here

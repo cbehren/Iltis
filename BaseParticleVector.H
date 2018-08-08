@@ -13,7 +13,7 @@ public:
     //sort by order. currently unused.
     void sort_by_order();
     //key  function to exchange particles between processes for distributed data sets
-    void exchange();
+    void exchange(bool force=false);
     //debugging function to check whether exchange went well.
     int check_consistency();
     //prints the load balance, i.e. the number of particles per process.

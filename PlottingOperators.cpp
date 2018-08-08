@@ -26,10 +26,10 @@ BasePlotOperator* get_plot_operator(std::string name,const BaseEmissionLine* l)
         return new opticalDepthOperator(l);
     if(name.compare(std::string("opticalDepthGrid"))==0)
         return new opticalDepthGridOperator(l);
+    if(name.compare(std::string("slice"))==0)
+        return new sliceOperator(l);
     std::cout << "Unknown plot operator with name " << name << std::endl;
     std::abort();
-    
-    
 }
 
 BasePlotOperator::BasePlotOperator(const BaseEmissionLine* l)
@@ -91,6 +91,7 @@ void opticalDepthOperator::increment(int ipix, const BaseParticle* p, const Base
     double fraction_in_dust=0.0;
     BaseParticle p2 = *p;
     p2.frequency = observed_frequency;
+
     double dtau = line->get_optical_depth(cell,&p2,length,&fraction_in_dust);
     contributions[ipix] += dtau;
     normalization[ipix] = 1.0;
@@ -109,10 +110,11 @@ void opticalDepthGridOperator::increment(int ipix, const BaseParticle* p, const 
         p2.frequency = observed_frequency-line->Nu0();
         //std::cout << "lambda " << line->convert_wavelength(p2.frequency) << std::endl; 
         double dtau = line->get_optical_depth(cell,&p2,length,&fraction_in_dust);
+        if(divide_by_density)
+            dtau/= cell->density;
         taus[i][ipix] += dtau;
         
     }
-    //std::abort();
 }
 
 void opticalDepthGridOperator::write_results()
@@ -152,8 +154,6 @@ void opticalDepthGridOperator::write_results()
         }
         fclose(fp);
     }
-    
-    
 }
 
 void opticalDepthOperator::set_frequency(double wavelength)
@@ -188,4 +188,149 @@ void LoSVelocityOperator::increment(int ipix, const BaseParticle* p, const BaseC
     normalization[ipix] += length*cell->density;
 }
 
+void sliceOperator::increment(int ipix, const BaseParticle* p, const BaseCell* cell, double length, double dx)
+{
+    if(cells[ipix]==NULL)
+    {
+        cells[ipix]=cell;
+        dxs[ipix]=dx;
+    }
+}
 
+
+void sliceOperator::write_results()
+{
+    LParmParse pp;
+    line_of_sight los,center,up;
+    double width,depth;
+    std::string output_prefix;
+    pp.get_line_of_sight("plotter.los",los);
+    pp.get_line_of_sight("plotter.center",center);
+    pp.get_line_of_sight("plotter.up",up);
+    pp.get("plotter.width",width);
+    pp.get("plotter.depth",depth);
+    pp.get("plotter.output_prefix",output_prefix);
+    
+    std::string var("_density");
+    std::string fname = output_prefix + name + var;
+    FILE* fp = fopen(fname.c_str(),"w");
+    fprintf(fp,"#los %le %le %le\n",los.x[0],los.x[1],los.x[2]);
+    fprintf(fp,"#up %le %le %le\n",up.x[0],up.x[1],up.x[2]);
+    fprintf(fp,"#center %le %le %le\n",center.x[0],center.x[1],center.x[2]);
+    fprintf(fp,"#width %le\n",width);
+    fprintf(fp,"#depth %le\n",depth);
+            
+    for(unsigned int j=0;j<cells.size();j++)
+    {
+        if(j % npixels == 0)
+            fprintf(fp,"\n");
+        fprintf(fp,"%le ", cells[j]->density);
+    }
+    fclose(fp);
+    
+    var ="_temperature";
+    fname = output_prefix + name + var;
+    fp = fopen(fname.c_str(),"w");
+    fprintf(fp,"#los %le %le %le\n",los.x[0],los.x[1],los.x[2]);
+    fprintf(fp,"#up %le %le %le\n",up.x[0],up.x[1],up.x[2]);
+    fprintf(fp,"#center %le %le %le\n",center.x[0],center.x[1],center.x[2]);
+    fprintf(fp,"#width %le\n",width);
+    fprintf(fp,"#depth %le\n",depth);
+            
+    for(unsigned int j=0;j<cells.size();j++)
+    {
+        if(j % npixels == 0)
+            fprintf(fp,"\n");
+        fprintf(fp,"%le ", cells[j]->temperature);
+    }
+    fclose(fp);
+    
+    var ="_velocity_x";
+    fname = output_prefix + name + var;
+    fp = fopen(fname.c_str(),"w");
+    fprintf(fp,"#los %le %le %le\n",los.x[0],los.x[1],los.x[2]);
+    fprintf(fp,"#up %le %le %le\n",up.x[0],up.x[1],up.x[2]);
+    fprintf(fp,"#center %le %le %le\n",center.x[0],center.x[1],center.x[2]);
+    fprintf(fp,"#width %le\n",width);
+    fprintf(fp,"#depth %le\n",depth);
+            
+    for(unsigned int j=0;j<cells.size();j++)
+    {
+        if(j % npixels == 0)
+            fprintf(fp,"\n");
+        fprintf(fp,"%le ", cells[j]->velocity[0]);
+    }
+    fclose(fp);
+    
+    var ="_velocity_y";
+    fname = output_prefix + name + var;
+    fp = fopen(fname.c_str(),"w");
+    fprintf(fp,"#los %le %le %le\n",los.x[0],los.x[1],los.x[2]);
+    fprintf(fp,"#up %le %le %le\n",up.x[0],up.x[1],up.x[2]);
+    fprintf(fp,"#center %le %le %le\n",center.x[0],center.x[1],center.x[2]);
+    fprintf(fp,"#width %le\n",width);
+    fprintf(fp,"#depth %le\n",depth);
+            
+    for(unsigned int j=0;j<cells.size();j++)
+    {
+        if(j % npixels == 0)
+            fprintf(fp,"\n");
+        fprintf(fp,"%le ", cells[j]->velocity[1]);
+    }
+    fclose(fp);
+    
+    var ="_velocity_z";
+    fname = output_prefix + name + var;
+    fp = fopen(fname.c_str(),"w");
+    fprintf(fp,"#los %le %le %le\n",los.x[0],los.x[1],los.x[2]);
+    fprintf(fp,"#up %le %le %le\n",up.x[0],up.x[1],up.x[2]);
+    fprintf(fp,"#center %le %le %le\n",center.x[0],center.x[1],center.x[2]);
+    fprintf(fp,"#width %le\n",width);
+    fprintf(fp,"#depth %le\n",depth);
+            
+    for(unsigned int j=0;j<cells.size();j++)
+    {
+        if(j % npixels == 0)
+            fprintf(fp,"\n");
+        fprintf(fp,"%le ", cells[j]->velocity[2]);
+    }
+    fclose(fp);
+    
+    
+    var ="_dx";
+    fname = output_prefix + name + var;
+    fp = fopen(fname.c_str(),"w");
+    fprintf(fp,"#los %le %le %le\n",los.x[0],los.x[1],los.x[2]);
+    fprintf(fp,"#up %le %le %le\n",up.x[0],up.x[1],up.x[2]);
+    fprintf(fp,"#center %le %le %le\n",center.x[0],center.x[1],center.x[2]);
+    fprintf(fp,"#width %le\n",width);
+    fprintf(fp,"#depth %le\n",depth);
+            
+    for(unsigned int j=0;j<cells.size();j++)
+    {
+        if(j % npixels == 0)
+            fprintf(fp,"\n");
+        fprintf(fp,"%le ", dxs[j]);
+    }
+    fclose(fp);
+    
+    
+    var ="_dust_density";
+    fname = output_prefix + name + var;
+    fp = fopen(fname.c_str(),"w");
+    fprintf(fp,"#los %le %le %le\n",los.x[0],los.x[1],los.x[2]);
+    fprintf(fp,"#up %le %le %le\n",up.x[0],up.x[1],up.x[2]);
+    fprintf(fp,"#center %le %le %le\n",center.x[0],center.x[1],center.x[2]);
+    fprintf(fp,"#width %le\n",width);
+    fprintf(fp,"#depth %le\n",depth);
+            
+    for(unsigned int j=0;j<cells.size();j++)
+    {
+        if(j % npixels == 0)
+            fprintf(fp,"\n");
+        fprintf(fp,"%le ", cells[j]->dust_density);
+    }
+    fclose(fp);
+
+    
+}

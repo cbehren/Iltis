@@ -88,6 +88,8 @@ public:
     }
     //move a particle by pathlengh (in code units) in direction of k
     void move(double pathlength);
+    //move a particle to position and update the path accordingly
+    void move_to(const double pos[3]);
     //stores the number of floats/ints that a particle holds.
     static const int nfloats;
     static const int nlongs;

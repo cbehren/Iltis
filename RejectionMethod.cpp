@@ -12,8 +12,6 @@ double erf_const;
 #endif
 double rejection_method(double x,double a)//following Laursen 2009
 {
-  
-  
  int tid = 0;
 #ifdef _OPENMP
  tid = omp_get_thread_num();
@@ -45,7 +43,6 @@ double rejection_method(double x,double a)//following Laursen 2009
   }
   if(xi>100*x_cw)
   {
-
     erf_const = 2.0*(RNG::uniform(tid)-0.5);
     u=rtsafe(&erf_min,-1.0e20,1.0e20,1.0e-4);
     return u*sign;
@@ -54,56 +51,44 @@ double rejection_method(double x,double a)//following Laursen 2009
     u0=0.0;
    else if(xi<x_cw)
      u0=xi-0.01*pow(a,1.0/6.0)*exp(1.2*xi);
-//   if(xi>=0.2 && xi<3)
-//     u0=(6.0+0.375*0.30*log(a))*2*atan(xi*0.5)/M_PI;
-//   if(xi>=3 && xi<x_cw)
-//     u0=2.25-(0.55+0.025*0.30*log(a))*atan(3.0*(xi-4.0));
-
-  //trying marks scheme:
-  //u1=(6.0+0.375*0.30*log(a))*2*atan(x0.5)/pi
-  //u2=2.25-(0.55+0.025*0.30*log(a))*atan(3.0*(x-4.0))
 
   double R;
   double theta0;
   while(1)//Following Zheng-Zheng 2002, p17
   {
     R=RNG::uniform(tid);
-  theta0=atan((u0-xi)/a);
-  p = ((theta0+M_PI/2.0)/((1.0-exp(-(u0*u0)))*
-	      theta0+(1.0+exp(-(u0*u0)))*M_PI/2.0));
-  if(R<=p)
-  {
-    right=theta0;
-    left=-M_PI/2.0;
-  }
-  else
-  {
-    right=M_PI/2.0;
-    left=theta0;   
-  }
-  u = (right-left)*(RNG::uniform(tid))+left;
-  u = a*tan(u)+xi;
-  dummy = RNG::uniform(tid);
-  fraction = exp(-(u*u));
-  if(u>u0)
-    fraction = fraction/(exp(-(u0*u0)));
-  //printf("fraction %f u %f dummy %f\n",fraction, u, dummy);
-   
-  if(dummy < fraction)
-  {
-    // printf("%d\n",trycount);
-    // *count=trycount;
-    u*=sign;
-    return u;
-  }
-  trycount++;
- 
+    theta0=atan((u0-xi)/a);
+    p = ((theta0+M_PI/2.0)/((1.0-exp(-(u0*u0)))*
+            theta0+(1.0+exp(-(u0*u0)))*M_PI/2.0));
+    if(R<=p)
+    {
+        right=theta0;
+        left=-M_PI/2.0;
+    }
+    else
+    {
+        right=M_PI/2.0;
+        left=theta0;   
+    }
+    u = (right-left)*(RNG::uniform(tid))+left;
+    u = a*tan(u)+xi;
+    dummy = RNG::uniform(tid);
+    fraction = exp(-(u*u));
+    if(u>u0)
+        fraction = fraction/(exp(-(u0*u0)));
+    
+    if(dummy < fraction)
+    {
+        u*=sign;
+        return u;
+    }
+    trycount++;
+    
     if(trycount==1000000)
-   {
-         printf("WARNING: Rejection says x %le u0 %le x_cw %le a %le u %le xi %le\n",x,u0,x_cw,a,u,xi);
-//     //abort();
-   }
-   } 
+    {
+            printf("WARNING: Rejection says x %le u0 %le x_cw %le a %le u %le xi %le\n",x,u0,x_cw,a,u,xi);
+    }
+ } 
   
 }
 

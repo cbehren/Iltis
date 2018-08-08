@@ -6,9 +6,18 @@
 #include "Utilities.H"
 #include <string>
 
-void BaseEmissionModel::setup(BaseParticleVector& particles,const BaseEmissionLine& line, const BaseDataset& ds)
+void BaseEmissionModel::setup()
+{
+    
+    
+}
+
+
+void BaseEmissionModel::launch_bunch(BaseParticleVector& particles, const BaseEmissionLine& line, const BaseDataset& ds, double dt)
 {
     //note that this is the implementation for the base class; it is basically a stub routine putting photons into the center of the box.
+    if(all_done)
+        return;
     LParmParse pp;
     long number_of_photons;
     pp.get("number_of_photons",number_of_photons);
@@ -83,8 +92,9 @@ void BaseEmissionModel::setup(BaseParticleVector& particles,const BaseEmissionLi
     particles.exchange();
     for(unsigned long i=0;i<particles.size();i++)
         shift_into_observed_frame(particles[i],line,ds);
-    
+    all_done = true;
 }
+
 void BaseEmissionModel::init_point_source(BaseParticleVector& particles,const long nphotons,const Emitter& emitter,const double weight,const BaseEmissionLine& line)
 {
     

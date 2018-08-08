@@ -18,10 +18,10 @@ void BaseParticleVector::sort_by_order()
 {
     std::sort(begin(),end(),by_order);
 }
-void BaseParticleVector::exchange()
+void BaseParticleVector::exchange(bool force)
 {
     Parallel::Barrier();
-    if(!distributed_data)
+    if(!distributed_data && !force)
       return;
     //figure out how many particles we have to transfer from which proc to which proc.
     sort_by_order();
@@ -53,20 +53,13 @@ void BaseParticleVector::exchange()
         while(has_particles)
         {
             std::vector<int> counts_for_proc_i(nprocs);
-//             if(Parallel::IOProcessor())
-//                 std::cout << "trying to exchange particle for proc " << i << std::endl;
+
             counts_for_proc_i[myproc]=std::min(vps[i].size(),PARTICLE_CHUNK_SIZE);
             Parallel::ReduceIntSum(counts_for_proc_i.data(),nprocs);
             int total_for_iproc_this_chunk=0;
             total_for_iproc_this_chunk=counts_for_proc_i[myproc];
             Parallel::ReduceIntSum(total_for_iproc_this_chunk);
-//             if(Parallel::IOProcessor())
-//             {
-//                 std::cout << "total: " << total_for_iproc_this_chunk << " in detail:" << std::endl;
-//                 for(int j=0;j<nprocs;j++)
-//                     std::cout << counts_for_proc_i[j] << std::endl;
-//             }
-            
+
             //get the floating point data.
             std::vector<double> sndfloats(counts_for_proc_i[myproc]*BaseParticle::nfloats);
             std::vector<long> sndlongs(counts_for_proc_i[myproc]*BaseParticle::nlongs);
@@ -103,8 +96,6 @@ void BaseParticleVector::exchange()
             }
             
             
-//             std::cout << myproc << ": trying gatherv: " << sndfloats.size() << " " << counts_for_proc_i[myproc] << std::endl;
-            
             Parallel::Gatherv(sndfloats.data(),sndfloats.size(),fcounts.data(),dbuf,i);
             Parallel::Gatherv(sndlongs.data(),sndlongs.size(),lcounts.data(),lbuf,i);
             if(myproc==i)
@@ -125,9 +116,6 @@ void BaseParticleVector::exchange()
         }
     }   
     Parallel::Barrier();
-    
-    
-    
 }
 BaseParticleVector::BaseParticleVector()  : std::vector<BaseParticle>()
 {
@@ -137,9 +125,6 @@ BaseParticleVector::BaseParticleVector()  : std::vector<BaseParticle>()
     pp.query("dataset_type",name);
     if(name.compare("RamsesMPI")==0 || name.compare("OctetMPI")==0)
         distributed_data=true;
-    
-    
-    
 }
 
 int BaseParticleVector::check_consistency()
@@ -174,5 +159,4 @@ int BaseParticleVector::print_balance()
       std::cout << std::endl;   
     }
     return 0;
-    
 }

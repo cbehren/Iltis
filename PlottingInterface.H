@@ -62,6 +62,4 @@ protected:
     std::vector<BasePlotOperator*> plotops;
 
     int verbosity = 1;
-
-    
 };

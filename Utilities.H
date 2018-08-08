@@ -7,11 +7,7 @@ namespace CGS{
     const double Msun = 1.989e33;//g
     const double cval = 299792458.0*100;//cm/s
     const double mp = 1.6726219e-24;//g
-    
-    
 }
-    
-    
 }
 
 

@@ -10,39 +10,39 @@
 
 
 
-
-
 int BaseSimulation::do_step()
 {
+    e->launch_bunch(particles,*line,*ds,0);
     do_rays();
     do_peeling_off();
     
     do_communication();
     if(verbosity>0)
     {
-        long size = particles.size();
-        Parallel::ReduceLongSum(size);
-        if(Parallel::IOProcessor())
-            std::cout << size << " photons left." << std::endl;
-        if(use_peeling_off)
-        {
-            size = 0;
-            for(int i=0;i<number_of_instruments;i++)
-                size += vparticles[i].size();
-             Parallel::ReduceLongSum(size);
-            if(Parallel::IOProcessor())
-                std::cout << size << " peeling off photons left." << std::endl;
-        }
+       long size = particles.size();
+       Parallel::ReduceLongSum(size);
+       if(Parallel::IOProcessor())
+           std::cout << size << " photons left." << std::endl;
+       if(use_peeling_off)
+       {
+           size = 0;
+           for(int i=0;i<number_of_instruments;i++)
+               size += vparticles[i].size();
+            Parallel::ReduceLongSum(size);
+           if(Parallel::IOProcessor())
+               std::cout << size << " peeling off photons left." << std::endl;
+       }
     }
     return 0;
 }
 
 bool BaseSimulation::is_done()
 {
-    
     bool value=false;
     if(particles.size()==0)
         value=true;
+    if(!e->is_done())
+        value=false;
     if(value && use_peeling_off)
     {
         for(int i=0;i<number_of_instruments;i++)
@@ -69,7 +69,6 @@ int BaseSimulation::do_rays()
     std::cout.precision(10);
     if(verbosity>1 && Parallel::IOProcessor())
         std::cout << "Entering do_rays" << std::endl;
-    //TODO sort by order to reduce caching effort
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
 #endif
@@ -95,7 +94,10 @@ int BaseSimulation::do_rays()
             else
                 num_steps_this_cell=0;
             if(num_steps_this_cell>1e5)
-                std::cout << "many steps here" << p << " pathlength " << pathlength << std::endl;
+            {
+                #pragma omp critical (stuck)
+                {std::cout << "many steps here " << p << " pathlength " << pathlength << std::endl;}
+            }
             old_cell = cell;
             #endif
             if(p.number_of_scatterings == -1)
@@ -112,21 +114,7 @@ int BaseSimulation::do_rays()
             //get the optical depth, figure out whether we will make it through pathlength.
             double dtau0= line->get_optical_depth_line_center(cell,&p,pathlength,&fraction_in_dust);
             double dtau = line->get_optical_depth(cell,&p,pathlength,&fraction_in_dust);
-//             if(RAY_DEBUG) std::cout << "photon " << p <<" in cell " << cell << " " << *cell << " mytau " << p.optical_depth << std::endl;
-#ifdef REMOVE_CGM            
-            //TODO just a try, remove
-            double r=0.;
-            for(int j=0;j<3;j++)
-            {
-                r+=pow(center[j]-p.x[j],2);
-                
-            }
-            if(sqrt(r) > radius)
-            {
-                dtau0 = 0;
-            }
-            //TODO
-#endif            
+            if(RAY_DEBUG) std::cout << "photon " << p <<" in cell " << cell << " " << *cell << " mytau " << p.optical_depth << std::endl;
             if(RAY_DEBUG) 
             std::cout << "rho " << cell->density << " vel " << cell->velocity[0] << " " << cell->velocity[1]<< " " << cell->velocity[2] << " len " << pathlength << " dtau " << dtau <<  std::endl;
             
@@ -141,10 +129,42 @@ int BaseSimulation::do_rays()
                 p.move(pathlength);
                 p.optical_depth -= dtau;
                 p.optical_depth_seen += dtau;
-//                 if(RAY_DEBUG) std::cout << " goes " << pathlength << " total " << p.path_length << "\tdtau " << dtau << "\ttauseen " << p.optical_depth_seen <<  std::endl;
             }
             else
             {
+                double new_k[3];
+                double new_freq_obs;
+#ifdef NEUFELD_ACCELERATION_SCHEME
+                double new_position[3];
+                const double local_v_thermal = ((LymanAlphaLine*)(line))->get_local_thermal_velocity(cell);
+                const double a_param = 4.7e-4*(12.85/(local_v_thermal/1.e5));//following Verhamme 2008   
+                if(a_param*dtau0*(1.-fraction_in_dust)>2e3)
+                {
+                    NeufeldAccStatus nfstatus = RegularScattering;
+                    new_freq_obs = ((LymanAlphaLine*)(line))->scatter_and_leave(cell,&p,ds,new_k, new_position,&nfstatus);
+                    
+                    if(nfstatus==Success)
+                    {
+                        p.move_to(new_position);
+                        p.frequency = new_freq_obs;
+                        for(int j=0;j<3;j++)
+                        {
+                            p.k[j] = new_k[j];
+                            p.lsp[j] = p.x[j];                        
+                        }
+                    cell = ds->data_at(p.x,p.k,pathlength,status);
+                    p.optical_depth = RNG::exponential();
+                    continue;
+                    }
+                    else if(nfstatus==Absorbed)
+                    {
+                        p.status = BP_DEAD;
+                        go_on = false;
+                        break;
+                    }
+                }      
+#endif
+                
                 //we will not make it, an interaction will occur.
 #ifdef TRACK_STUCK_PHOTONS
                 num_steps_this_cell=0;  
@@ -157,10 +177,8 @@ int BaseSimulation::do_rays()
                 p.move(pathlength2);
                 p.optical_depth_seen += p.optical_depth;
                 //execute the scattering
-                double new_k[3];
                 double atom_velocity[3];
-#ifndef NO_SCATTERINGS
-                double new_freq_obs;
+#ifndef NO_SCATTERINGS               
                 //decide whether we scatter on dust or gas
                 double r = RNG::uniform();
                 if(r <= fraction_in_dust)//we interact with dust!
@@ -264,22 +282,27 @@ int BaseSimulation::do_peeling_off()
             double fraction_in_dust=0.0;
             const BaseCell* cell = ds->data_at(p.x,p.k,pathlength,status);
             bool go_on = true;
+#ifdef TRACK_STUCK_PHOTONS
+           int num_steps_this_cell=0;  
+           const BaseCell* old_cell = cell;
+#endif
             while(status==DS_ALL_GOOD && go_on)
             {
+#ifdef TRACK_STUCK_PHOTONS
+            if(old_cell == cell)
+            {
+                num_steps_this_cell++;
+            }
+            else
+            {
+                old_cell = cell;
+                num_steps_this_cell = 0;
+            }
+            if(num_steps_this_cell > 1e5)
+                std::cout << "in peeling off; many steps here: " << p << pathlength;
+#endif
                 double dtau = line->get_optical_depth(cell,&p,pathlength,&fraction_in_dust);
-#ifdef REMOVE_CGM            
-            //TODO just a try, remove
-            double r=0.;
-            for(int j=0;j<3;j++)
-            {
-                r+=pow(center[j]-p.x[j],2);
-                
-            }
-            if(sqrt(r) > radius)
-            {
-                dtau = 0;
-            }
-#endif            
+          
                 p.move(pathlength);
                 //accumulate optical depth seen.
                 p.optical_depth += dtau;
@@ -383,9 +406,12 @@ int BaseSimulation::do_communication()
     {
         ds->set_domain(&vparticles[j]);
         vparticles[j].exchange(); 
-        if(Parallel::IOProcessor() && verbosity>3)
-            std::cout << "For instrument " << j << ": " << std::endl;
-        vparticles[j].print_balance();
+        if(verbosity>3)
+        {
+            if(Parallel::IOProcessor())
+                std::cout << "For instrument " << j << ": " << std::endl;
+            vparticles[j].print_balance();
+        }
     }
     
     if(verbosity > 1)
@@ -464,8 +490,11 @@ int BaseSimulation::setup()
     
     line = new LymanAlphaLine;
     line->setup();
-    
-    
+#ifdef NEUFELD_ACCELERATION_SCHEME
+    if(Parallel::IOProcessor())
+        std::cout << "BaseSimulation::setup(): The Neufeld acceleration scheme is active." << std::endl;
+#endif    
+
     if(use_emitter_file)
     {
         e = new ListEmissionModel();
@@ -474,11 +503,11 @@ int BaseSimulation::setup()
     }
     else
         e = new BaseEmissionModel();
-    e->setup(particles,*line,*ds);
+    e->setup();
     
     o = new BaseOutput;
     o->setup(line);
-    o->writeSlices(*ds);
+    o->writeSlices(*ds, std::string(""));
     o->writeInputPhotons(particles);
     
     if(Parallel::IOProcessor())

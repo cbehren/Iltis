@@ -2,32 +2,28 @@
 #include "LightParmParse/LParmParse.H"
 #include "RandomNumbers.H"
 #include "Parallel.H"
-#include "EmissionList.H"
 #include <string>
 #include <vector>
 
-void ListEmissionModel::setup(BaseParticleVector& particles,const BaseEmissionLine& line, const BaseDataset& ds)
+void ListEmissionModel::setup()
 {
-    const int       MyProc   = Parallel::MyProc();
-    const int       NProcs   = Parallel::NProcs();
     LParmParse pp;
     std::string filename;
-    int minimum_number_of_photons_per_source=0;
-    double minimum_luminosity=0.0;
-    long number_of_photons;
-    pp.get("number_of_photons",number_of_photons);
     pp.get("emission.emitter_file",filename);
+    int minimum_number_of_photons_per_source=0;
     pp.query("emission.minimum_number_of_photons_per_source",minimum_number_of_photons_per_source);
+    double minimum_luminosity=0.0;
     pp.query("emission.minimum_luminosity",minimum_luminosity);
+
     if(Parallel::IOProcessor())
     {
         std::cout << "Generating emitters from point sources in file " << filename << std::endl;
         std::cout << "Each source will emit at least " << minimum_number_of_photons_per_source << " photons " << std::endl;
     }
-    EmissionList emitters;
+    
     std::vector<double> bounding_box_lo;
     std::vector<double> bounding_box_hi;
-    double applyBoundingBox=false;
+    bool applyBoundingBox=false;
     pp.queryarr("emission.bounding_box_lo",bounding_box_lo);
     pp.queryarr("emission.bounding_box_hi",bounding_box_hi);
     if(bounding_box_lo.size()==3 && bounding_box_hi.size()==3) 
@@ -67,8 +63,25 @@ void ListEmissionModel::setup(BaseParticleVector& particles,const BaseEmissionLi
     emitters.readFromFile(filename,em,sp,minimum_luminosity,applyBoundingBox);
     if(Parallel::IOProcessor())
         std::cout << "Found " << emitters.size() << " emitters in file\n";
-    std::vector<double> relative_emissivity = emitters.relativeEmissivity();
-    std::vector<double> absolute_emissivity = emitters.absoluteEmissivity();
+    relative_emissivity = emitters.relativeEmissivity();
+    absolute_emissivity = emitters.absoluteEmissivity();
+}
+
+
+void ListEmissionModel::launch_bunch(BaseParticleVector& particles, const BaseEmissionLine& line, const BaseDataset& ds, double dt)
+{
+    if(all_done)
+        return;
+    const int       MyProc   = Parallel::MyProc();
+    const int       NProcs   = Parallel::NProcs();
+    
+    
+    long number_of_photons=0;
+    int minimum_number_of_photons_per_source=0;
+    LParmParse pp;
+    pp.get("number_of_photons",number_of_photons);
+    pp.query("emission.minimum_number_of_photons_per_source",minimum_number_of_photons_per_source);
+    
     for(unsigned int i=0;i<emitters.size();i++)
     {
         if ((i%NProcs) == (unsigned int)MyProc)
@@ -80,7 +93,6 @@ void ListEmissionModel::setup(BaseParticleVector& particles,const BaseEmissionLi
                 count = minimum_number_of_photons_per_source;
                 
             }
-//             std::cout << "Process " << MyProc << " initializing source " << i << " with " << count << " photons" << std::endl;
             double weight = absolute_emissivity[i]/count;
             
             init_point_source(particles,count,emitter,weight,line);
@@ -94,6 +106,6 @@ void ListEmissionModel::setup(BaseParticleVector& particles,const BaseEmissionLi
     Parallel::ReduceLongSum(size);
     if(Parallel::IOProcessor())
         std::cout << "Launched "<< size << " photons" << std::endl;
-    
-   
+    all_done = true;
+    Parallel::Barrier();
 }

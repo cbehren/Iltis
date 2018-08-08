@@ -56,8 +56,6 @@ double Interpolate::right_boundary(double x)
     
   }
   return 0;
-  
-  
 }
 
 
@@ -65,7 +63,6 @@ Interpolate::Interpolate(double *x,double *y,long n, BOUNDARY_COND leftedge_bc, 
 {
   init();
   Init(x,y,n,leftedge_bc,rightedge_bc);
-  
 }
 Interpolate::Interpolate()
 {
@@ -76,7 +73,6 @@ void Interpolate::Init(double *x,double *y,long n, BOUNDARY_COND leftedge_bc, BO
   X = new double[n];
   Y = new double[n];
   N = n;
-
 
   for(int i=0;i<N;i++)
   {
@@ -126,7 +122,6 @@ double Interpolate::y(double x)
   double rfrac=1.0-lfrac;
 
   return lfrac*Y[left_index]+rfrac*Y[right_index];
-  
  
 }
 

@@ -4,9 +4,9 @@ boxsize = 3.51e19 #cm
 redshift = 0.0
 rng.seed = 123
 #shell.column_density = 3e20 #cm^-2
-shell.density = 189.0 #cm^-3
+shell.density = 1e-20 #cm^-3
 shell.column_density_dust = 0.0
-shell.outflow_velocity = 300e5 #cm/s
-shell.temperature = 96878.0 # K
+shell.outflow_velocity = 0 #cm/s
+shell.temperature = 2.74 # K
 number_of_photons = 40000
 

@@ -41,7 +41,6 @@ DustModule* get_dust_module(std::string name)
         std::abort();
         }
         return dm;  
-    
 }
 
 NeutralFractionModule* get_neutral_fraction_module(std::string name)
@@ -76,5 +75,4 @@ NeutralFractionModule* get_neutral_fraction_module(std::string name)
         std::abort();
         }
         return dm;  
-    
 }

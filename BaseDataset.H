@@ -22,8 +22,12 @@ public:
     virtual int setup() = 0 ;
     //relevant only for datasets with distributed data; given a vector with particles, update each particles domain attribute to indicate which process should get this particle.
     virtual int set_domain(BaseParticleVector *vp) const =0;
+    //a routine relevant only for the Neufeld acceleration scheme implemented for the Lyman alpha line. returns the distance vector and surface normal of the nearest face of the cell in which x lies.
+    virtual const int get_nearest_face(const double x[3],double *orth_distance, double distance[3]) const {std::cout << "Not implemented" << std::endl;std::abort();}
     //the maximum pathlength (in code units) allowed in a single step.
     double max_step=1e-6;
+    //the minimum pathlength allowed for a single step (in code units)
+    double min_step=1e-10;
 
 };
 #endif

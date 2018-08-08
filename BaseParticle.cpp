@@ -1,4 +1,5 @@
 #include "BaseParticle.H"
+#include <cmath>
 long BaseParticle::n=0;
 
 const int BaseParticle::nfloats=15;
@@ -45,9 +46,22 @@ void BaseParticle::move(double pathlength)
     this->path_length += pathlength;   
     
 }
+void BaseParticle::move_to(const double pos[3])
+{
+    double d=0;
+    for(int i=0;i<3;i++)
+        d += pow(x[i]-pos[i],2);
+    d = sqrt(d);
+    for(int i=0;i<3;i++)
+        x[i] = pos[i];
+    path_length += d;
+    
+}
+
+
 std::ostream& operator<<(std::ostream& stream,const BaseParticle& p)
 {
-    stream << p.id << " : " << p.frequency << " " << p.x[0] << " " << p.x[1] << " " << p.x[2] << " " << p.k[0] << " " << p.k[1] << " " << p.k[2] << " " << p.status << " " << p.order <<  std::endl;
+    stream << p.id << " : " << p.frequency << " " << p.number_of_scatterings << " "  << p.x[0] << " " << p.x[1] << " " << p.x[2] << " " << p.k[0] << " " << p.k[1] << " " << p.k[2] << " " << p.status << " " << p.order <<  std::endl;
     return stream;
     
 }

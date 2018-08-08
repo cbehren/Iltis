@@ -15,6 +15,7 @@ public:
   virtual void increment(int ipix, const BaseParticle* p, const BaseCell* cell, double length, double dx) = 0;
   double get_value_normed(int ipix);
   virtual void write_results();
+  virtual bool is_slice (){return false;}
 protected:
   static const BaseEmissionLine* line;
   std::vector<double> contributions;
@@ -82,16 +83,18 @@ public:
         taus.resize(nlambda);
         for(int i=0;i<nlambda;i++)
             taus[i].resize(npixels*npixels);
+        pp.query("plotter.opticalDepthGrid.divide_by_density",divide_by_density);
     }
     
     void increment(int ipix, const BaseParticle* p, const BaseCell* cell, double length, double dx);
     void write_results();
-private:
+protected:
     std::vector<std::vector<double> > taus;
     double dlambda=0.0;
     double nlambda=0;
     double lambda_left;
     double lambda_right;
+    bool divide_by_density = false;
 };
 
 
@@ -109,4 +112,17 @@ private:
     line_of_sight los;
     
 };
+class sliceOperator : public BasePlotOperator{
+public:
+    sliceOperator(const BaseEmissionLine* l) : BasePlotOperator(l){constant_normalization=1.0; name="slice"; cells.resize(npixels*npixels);dxs.resize(npixels*npixels);}
+    void increment(int ipix, const BaseParticle* p, const BaseCell* cell, double length, double dx);
+    void write_results();
+    std::vector<const BaseCell*> cells;
+    std::vector<double> dxs;
+    bool is_slice(){return true;}
+
+};
+
+
+
 BasePlotOperator* get_plot_operator(std::string name,const BaseEmissionLine *l);

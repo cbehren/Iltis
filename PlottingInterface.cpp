@@ -36,7 +36,7 @@ int PlottingInterface::generate_rays()
                 p.x[dim] =  lowerleft[dim];
                 p.x[dim] += up.x[dim]*dx*i;
                 p.x[dim] += up2.x[dim]*dx*j;
-                p.lsp[dim] += up2.x[dim]*dx*j;
+                p.lsp[dim] = p.x[dim];
                 p.k[dim] = los.x[dim];
                 p.status = BP_OKAY;
                 p.id = i*lindim+j;
@@ -50,20 +50,11 @@ int PlottingInterface::generate_rays()
                 //std::cout << p << std::endl;
                 particles.push_back(p);
             }
-            
-        
         }
-    
-        
-        
     }
     ds->set_domain(&particles);
     particles.exchange();
-    
-    
     return 0;
-    
-    
 }
 
 
@@ -85,7 +76,6 @@ int PlottingInterface::do_step()
 
 bool PlottingInterface::is_done()
 {
-    
     bool value=false;
     if(particles.size()==0)
         value=true;
@@ -93,8 +83,6 @@ bool PlottingInterface::is_done()
     Parallel::ReduceBoolAnd(value);
             
     return value;
-    
-    
 }
 #define TRACK_STUCK_PHOTONS
 #define RAY_DEBUG 0
@@ -136,8 +124,10 @@ int PlottingInterface::do_rays()
             //cycle throught the operators, store the result accordingly
             for(unsigned int iop=0;iop<plotops.size();iop++)
             {
+#pragma omp critical
+                {
                 plotops[iop]->increment(p.id,&p,cell,pathlength,dx);
-                //std::cout << dx << " " << output[iop][p.id] << " " << weight << std::endl;
+                }
             }
    
             if(RAY_DEBUG) 
@@ -152,22 +142,15 @@ int PlottingInterface::do_rays()
              }
             if(RAY_DEBUG) 
                     std::cout << "SCATTERED " << p.frequency << " #" << p.number_of_scatterings << " at " << p.x[0] << " " << p.x[1] << " " << p.x[2] << " k " << p.k[0] << " " << p.k[1] << " " << p.k[2] << " optical depth " << p.optical_depth_seen << std::endl;
-                
-            
-            
-            cell = ds->data_at(p.x,p.k,pathlength,status);
+           cell = ds->data_at(p.x,p.k,pathlength,status);
         }
         
         if(status == DS_NOT_IN_DOMAIN)
         {
-            //TODO add periodic boundaries
             p.status = BP_DONE;
-            
         }
-        
     }
     return 0;
-    
 }
 
 int PlottingInterface::do_communication()
@@ -181,7 +164,6 @@ int PlottingInterface::do_communication()
     //do output for photons
     for(auto it = particles.rbegin(); it != particles.rend();it++)
     { 
-     
         BaseParticle &p = *it;
         if(p.status == BP_DEAD)
         {
@@ -197,16 +179,13 @@ int PlottingInterface::do_communication()
             p.frequency = p.frequency - scalar(v,p.k)/Constants::CGS::cval*line->Nu0();
             particles.pop_back();
         }
-    
     }
-
     //figure out which process should get which photon, and exchange photons accordingly
     ds->set_domain(&particles);
     {
         particles.exchange();
         if(verbosity>3)
             particles.print_balance();
-        
     }
     if(verbosity > 1)
     {
@@ -214,9 +193,7 @@ int PlottingInterface::do_communication()
         if(Parallel::IOProcessor())
         {
             std::cout << "Spent " << end-start << " seconds in communication " << std::endl;
-
         }
-
     }
     return 0;
 }
@@ -236,7 +213,6 @@ int PlottingInterface::read_params()
     pp.get("plotter.npixels",npixels);
     pp.get("plotter.oversampling",oversampling);
     
-
     return 0;
 }
 int PlottingInterface::setup()
@@ -263,7 +239,6 @@ int PlottingInterface::setup()
     while(pp.querykth("plotter.operator",k,operator_name))
     {
         std::cout << "Asked for operator " << operator_name << std::endl;
-        
         plotops.push_back(get_plot_operator(operator_name,line));
         k++;
     }
@@ -271,18 +246,14 @@ int PlottingInterface::setup()
     {
         std::cout << "Error: No operator specified!" << std::endl;
         std::abort();
-        
     }
-    
     return 0;
 }
 int PlottingInterface::cleanup()
 {
-    
     for(unsigned int iop=0;iop<plotops.size();iop++)
     {
                 plotops[iop]->write_results();
-                //std::cout << dx << " " << output[iop][p.id] << " " << weight << std::endl;
     }
     return 0;
 }

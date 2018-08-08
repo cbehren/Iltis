@@ -24,19 +24,18 @@ public:
   virtual ~NeutralFractionModule() {};
 
 };
-//null implementation. Does nothing and fails.
+//null implementation. Does nothing and returns the neutral fraction to be one.
 class NeutralFractionNull : public NeutralFractionModule{
 protected: 
     void init()
     {
         type = NM_NULL;
-        std::cout << "NeutralFractionNull::init(): Invalid selection for NeutralFractionModule\n"; 
-        std::abort();
+        
     }
 public:  
     NeutralFractionNull(){init();}
     ~NeutralFractionNull() {}
-    double neutralFraction(double density, double temperature){init(); return 0;}
+    double neutralFraction(double density, double temperature){ return 1.0;}
 };
 //This is a stub. At some point we want to implement it for a case in which the neutral fraction is explicitly given by one of the field in the multifab.
 class NeutralFractionField : public NeutralFractionModule{

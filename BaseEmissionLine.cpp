@@ -45,11 +45,6 @@ double getHofz(double z)
   double H0 = 0.677900009155273E+02;
   double Omega_M = 0.307999998331070E+00;
   double Omega_L = 0.691999971866608E+00;
-  //TODO DEBUG REMOVE - this is the cosmology for Illustris, for comparison.
-  H0 = 70.4;
-  Omega_L = 0.7274;
-  Omega_M = 0.2726;
-
   
   pp.query("cosmology.H0",H0);
   pp.query("cosmology.Omega_M",Omega_M);

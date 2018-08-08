@@ -71,14 +71,12 @@ std::default_random_engine* RNG::generators = NULL;
        generators[i].seed(base_seed+i);
        distributions[i].param(temp.param());
    }
-    
 }
 
 
 double RNG::exponential(int tid)
 {
     return -1.0*log(uniform(tid));
-    
 }
 
 double RNG::gaussian(double mean,double sigma,int tid)
@@ -87,6 +85,19 @@ double RNG::gaussian(double mean,double sigma,int tid)
  double u2=uniform(tid);
  double z=sqrt(-2*log(u1))*cos(2*M_PI*u2);
  return z*sigma+mean;
-
 }
 
+int RNG::uniform_integer(int L,int R,int tid)
+{
+    std::uniform_int_distribution<int> distribution(L,R);
+    if(tid>-1)
+        return distribution(generators[tid]);
+    else
+    {
+        tid = 0;
+    #ifdef _OPENMP
+        tid = omp_get_thread_num(); 
+    #endif
+        return distribution(generators[tid]);
+    }
+}

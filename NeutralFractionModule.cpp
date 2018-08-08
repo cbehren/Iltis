@@ -67,10 +67,7 @@ double NeutralFractionRahmati13::neutralFraction(double density, double temperat
     double C = alpha;
     
     double eta = (B - sqrt(B*B - 4*A*C))/(2*A);
-    //std::cout << B << " - " << sqrt(B*B - 4*A*C) << " / " << 2*A << " = "<< eta << " " << " \nA " << A << " B " << B << " C " << C  << std::endl;
-    //std::cout << density << " eta " << eta << " alpha " << alpha << " lambda " << lambda << " gamma " << gamma << std::endl;
     return eta;
-    
 }
 
 
@@ -86,7 +83,6 @@ double NeutralFractionRahmati13::alpha_A(double T)
     double down = pow(1+pow(lambda/0.522,0.47),1.923);
 
     return c*up/down;
-    
 }
 double NeutralFractionRahmati13::Lambda_T(double T)
 {
@@ -96,7 +92,6 @@ double NeutralFractionRahmati13::Lambda_T(double T)
     double down = 1+sqrt(T/1.e5);
    
     return c*up/down;
-    
 }
 double NeutralFractionRahmati13::nH_ssh(double T, double redshift)
 {
@@ -117,12 +112,10 @@ double NeutralFractionRahmati13::Gamma_Phot(double redshift,double nh,double nh_
     double term2 = 0.02*pow(1+f,-0.84);
     double Gamma = Gamma12(redshift)*1.e-12;
     return (term1+term2)*Gamma;
-    
 }
 double NeutralFractionRahmati13::Gamma12(double redshift)
 {
     return interp_gamma->y(redshift)/1.0e-12;
-    
 }
 double NeutralFractionRahmati13::sigma_vh(double redshift)
 {
@@ -137,7 +130,6 @@ NeutralFractionChardin17::NeutralFractionChardin17(double z) : NeutralFractionRa
     {
         std::cout << "NeutralFractionChardin17::NeutralFractionChardin17(): supporting only z>3.0" << std::endl;
         std::abort();
-        
     }
     init_read();
 }
@@ -175,7 +167,6 @@ int NeutralFractionChardin17::init_read()
     interp_beta = new Interpolate(z,beta,8);
     interp_f = new Interpolate(z,f,8);
     return 0;    
-
 }
 
 
@@ -197,7 +188,6 @@ double NeutralFractionChardin17::Gamma_Phot(double redshift,double nh,double nh_
     double term2 = f*pow(1.+nr,alpha2);
     
     return (term1+term2)*Gamma;
-    
 }
 
 #ifdef TEST_STANDALONE
@@ -206,22 +196,16 @@ int main(int argc,char* args[])
     double redshift = 6.01;
     NeutralFractionRahmati13 ra(redshift);
     NeutralFractionChardin17 ch(redshift);
-    
-//      for(int z=0;z<10;z++)
-//          std::cout << z << " " << nf.nH_ssh(20000.0,(double)z) << " " << nf.sigma_vh((double)z) << " " << nf.Gamma12((double)z) << std::endl;
+
     double nh_ssh = ra.nH_ssh(1e4,redshift);
     std::cout << "#log(nh) f_R+13 f_C+17 " << nh_ssh << " " << ra.Gamma12(redshift)*1.e-12 << "\n";
     for(int i=-60;i<40;i++)
     {
         double n = pow(10.0,(double)i/10.0);
         double T = 1.e4;
-        
-//         std::cout << log10(n) << " " << log10(nf1.neutralFraction(n,T)) << " " << log10(nf2.neutralFraction(n,T)) << " "<< log10(nf3.neutralFraction(n,T)) << " " << log10(nfc.neutralFraction(n,T)) << std::endl;
         std::cout << n << " " << ra.neutralFraction(n,T) << " " << ra.Gamma_Phot(redshift,n,nh_ssh) <<" " << ch.neutralFraction(n,T)  << std::endl;
-        
     }
     return 0;
-    
 }
 #endif
 

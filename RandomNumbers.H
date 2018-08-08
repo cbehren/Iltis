@@ -10,6 +10,8 @@ public:
     static void point_on_sphere(double x[3]);
     //return a exponentially distributed pseudo random number
     static double exponential(int tid=-1);
+    //return a random integer between L and R
+    static int uniform_integer(int L,int R,int tid=-1);
     //initialize the RNG
     static void initialize();
 private:
@@ -17,7 +19,4 @@ private:
     static std::uniform_real_distribution<double>* distributions;
     static int nthreads;
     static int nprocs;
-    
-    
-    
 };

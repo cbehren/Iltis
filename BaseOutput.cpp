@@ -326,7 +326,7 @@ void BaseOutput::writeSlicesParallel(const BaseDataset& ds)
 
 
 
-void BaseOutput::writeSlices(const BaseDataset& ds)
+void BaseOutput::writeSlices(const BaseDataset& ds, std::string snap_time)
 {
     LParmParse pp;
     bool do_slices = false;
@@ -343,9 +343,9 @@ void BaseOutput::writeSlices(const BaseDataset& ds)
     if(do_slices && Parallel::IOProcessor())//write a basic slice in the middle of the box.
     {
         std::cout << "Writing slices..." << std::endl;
-        std::ofstream temperatures("temperature_slice.dat");
-        std::ofstream densities("density_slice.dat");
-        std::ofstream dust_densities("dust_density_slice.dat");
+        std::ofstream temperatures("temperature_slice_"+snap_time+".dat");
+        std::ofstream densities("density_slice_"+snap_time+".dat");
+        std::ofstream dust_densities("dust_density_slice_"+snap_time+".dat");
 
         //TODO this will not work with a distributed domain.
         

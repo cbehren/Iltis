@@ -43,9 +43,11 @@ class params_file(OrderedDict):
                         key += "%"+repr(los_count)
                         los_count+=1
                     self[key]=value
-    def write(self,fname):
+    def write(self,fname,comment=None):
         with open(fname,"w") as f:
             f.write("#file written by params_file class\n")
+            if(comment is not None):
+                f.write("#"+comment+"\n")
             for key,value in  self.iteritems():
                 if("%" in key):
                     key = key.split("%")[0]
@@ -64,13 +66,26 @@ class params_file(OrderedDict):
         if key in self.float_types:
             return float(value)
         if key in self.int_types:
-            return int(value)
+            try:
+                v = int(value)
+            except ValueError:
+                print "Warning:",key,"should be integer, but is",value
+                v= int(round(float(value)))
+            
+            return v
         if key in self.float_vector_types:
             return np.array([float(v) for v in value.split()])
         if key in self.int_vector_types:
             return np.array([int(v) for v in value.split()])
         if key in self.bool_types:
-            return bool(value)
+            if(value in ["true","True"]):
+                   ret = True
+            elif(value in ["false","False"]):
+                   ret = False
+            else:
+                raise NameError("Could not convert parameter to boolean!")
+            return ret
+        
         return value
     
     

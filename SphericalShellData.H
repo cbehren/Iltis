@@ -12,10 +12,8 @@ struct ShellParameters{
   double column_density_dust;
   double temperature;
   double outflow_velocity;
-  
   double density;
   double density_dust;
-    
 };
 
 class SphericalShellData : public BaseDataset{

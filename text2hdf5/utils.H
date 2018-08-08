@@ -1,6 +1,4 @@
-struct line_of_sight{
- double x[3];   
-};
+
 struct metadata{
   double lengthOfBox;//physical boxlength in cm
   double redshift;  

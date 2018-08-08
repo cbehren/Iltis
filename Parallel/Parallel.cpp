@@ -926,6 +926,39 @@ Parallel::Mpi_typemap<double>::type ()
 
 #else /*!USE_MPI*/
 
+
+void Parallel::Gatherv (double* sendbuf,
+                  int sendcount,
+                  int*   recvcounts,
+                  double* recvbuf,
+                  int   root)
+{
+    
+    for (int i = 0; i < sendsend; ++i)
+        recvbuf[i] = sendbuf[i];
+}
+
+void Parallel::Gatherv (int* sendbuf,
+                  int sendcount,
+                  int*   recvcounts,
+                  int* recvbuf,
+                  int   root)
+{
+    
+    for (int i = 0; i < sendsend; ++i)
+        recvbuf[i] = sendbuf[i];
+}
+
+void Parallel::Gatherv (long* sendbuf,
+                  int sendcount,
+                  int*   recvcounts,
+                  long* recvbuf,
+                  int   root)
+{
+    
+    for (int i = 0; i < sendsend; ++i)
+        recvbuf[i] = sendbuf[i];
+}
 void
 Parallel::StartParallel (int*    argc,
                                    char*** argv,

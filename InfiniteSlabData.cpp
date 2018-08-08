@@ -18,6 +18,7 @@ const BaseCell* InfiniteSlabData::data_at(const double x[3], const double k[3], 
         status = DS_NOT_IN_DOMAIN;
         return NULL;
     }
+    status = DS_ALL_GOOD;
     BaseCell *mycell = &cells[tid];
     
     mycell->density = params->density;
@@ -33,7 +34,7 @@ const BaseCell* InfiniteSlabData::data_at(const double x[3], const double k[3], 
         std::abort();
         
     }
-    pathlength = std::max(1e-8,pathlength);
+    pathlength = std::max(min_step,pathlength);
     
     return mycell;
 }
@@ -59,13 +60,11 @@ int InfiniteSlabData::setup()
  {
      std::cout << "Please provide either density or column_density" << std::endl;
      std::abort();
-     
  }
  if(pp.query("slab.column_density_dust",dummy) && pp.query("slab.density_dust",dummy))
  {
      std::cout << "Please provide either density_dust or column_density_dust" << std::endl;
      std::abort();
-     
  }
 
  if(pp.query("slab.column_density",dummy))
@@ -106,7 +105,7 @@ int InfiniteSlabData::setup()
 if(Parallel::IOProcessor())
 {
     std::cout << "Configured spherical slab with density " << params->density << " dust density " << params->density_dust <<  std::endl;
-    
+    std::cout << "This corresponds to optical depths of tau0=" << 8.3e6*params->boxsize/2.*params->density/2e20*1./sqrt(params->temperature/2e4) << " and taud=" << params->boxsize/2.*1.009882e+05*params->density_dust << std::endl;
 }
  
  
@@ -121,7 +120,6 @@ int InfiniteSlabData::set_parameters(SlabParameters sh)
     params = new SlabParameters;
     *params = sh; 
     return 0;
-    
 }
 
 
@@ -141,6 +139,4 @@ double InfiniteSlabData::intersection(const double x[3], const double k[3]) cons
         p0minusx[i] = p0[i]-x[i];
     double d = scalar(p0minusx,n)/scalar(k,n);
     return d;
-    
-    
 }

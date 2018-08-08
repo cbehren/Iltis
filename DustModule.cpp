@@ -15,14 +15,14 @@ double DustModule::GreensteinPhase(const double R)
 {
   //return cos theta = mu for a the Heyney-Greenstein phase function. The line below comes from direct inversion of the distribution function.
   return 1.0/(2.0*G_Greenstein)*(1+G_Greenstein*G_Greenstein-((1-G_Greenstein*G_Greenstein)/(1+G_Greenstein*(2*R-1)))*((1-G_Greenstein*G_Greenstein)/(1+G_Greenstein*(2*R-1))));  
+  
 }
 
 double DustModule::GreensteinProbability(const double mu)
 {
   //returns the probability of obtaining cos theta = mu at a scattering
   double g = G_Greenstein;
-  return 0.5*(1.-g*g)/pow(1.+g*g-2.*g*mu,1.5);
-  //this will be 0.5 if the G_Greenstein -> 0.
+  return (1.-g*g)/pow(1.+g*g-2.*g*mu,1.5);
 }
 
 
@@ -63,10 +63,6 @@ double DustModuleNull::DustConversionFactor()
   
 }
 
-// int DustModuleNull::ConvertDust(MultiFab& fab,const double dx)
-// {
-//  return 0; 
-// }
 double DustModuleNull::tauConstFactor()
 {
   return 0;
@@ -166,33 +162,6 @@ double DustModuleVerhamme12::ConvertDust(double density, double temperature, dou
     
 }
 
-// int DustModuleVerhamme12::ConvertDust(MultiFab& fab,const double dx)
-// {
-//     //currently set up for Ramses simulations. 
-//   //expected input units; hydrogen number density in 1/m^3, metallicity z.
-//   //needed; dust grain number density in m^3.
-//   const double mh = 1.6726219e-24;
-//  
-//   
-//   for (MFIter mfi(fab); mfi.isValid(); ++mfi)
-//   {
-//     FArrayBox& b = fab[mfi];
-// 
-//     const Box& box = mfi.validbox();
-//     const int* lo = box.loVect();
-//     const int* hi = box.hiVect();
-//     //next line removes dust where T>100000 K
-//     BL_FORT_PROC_CALL(DUST_AND_TEMPERATURE,dust_and_temperature)
-//       (BL_TO_FORTRAN(b),&Sedona::NUM_STATE, lo, hi, &dx, &Sedona::Temp,&Sedona::rhoZ);
-//   }
-//    //next line converts yields metal mass density in units of hydrogen atoms per m^3
-//   fab.Multiply(fab,fab,Sedona::Density,Sedona::rhoZ,1,fab.nGrow());
-//   //next line converts first into g/m^3, then into dust grains per 1/m^3
-//   double dust_conversion_factor=DustConversionFactor()*mh;
-//   fab.mult(dust_conversion_factor,Sedona::rhoZ,1,fab.nGrow());
-//   return 0;
-// }
-
 double DustModuleVerhamme12::tauConstFactor()
 {
   return 1.e-12*M_PI*2.0;//following verhamme 06. these units are cgs.  
@@ -242,14 +211,18 @@ double DustModuleDahlia::scatter(const BaseCell* cell,const BaseParticle* p,doub
     std::cout << "Old data: k " << k[0] << " "  << k[1] << " "  << k[2] << " freq " << x << '\n';
   
   for(int i=0;i<3;i++)
+  {
     velocity[i] = (hflow[i]+bulk[i])/BaseEmissionLine::c_val;
-  LymanAlphaLine::Lorentz_Transform_in(velocity, k, k_atomframe);
+    k_atomframe[i] = k[i];
+  }
+  
   
   //get the new k-vector. 
   if(!k_and_atom_velocity_given)
   {
       AnisotropicReemission(k_atomframe,k_new_atomframe);
-      LymanAlphaLine::Lorentz_Transform_out(velocity, k_new_atomframe, k_new);
+      for(int i=0;i<3;i++)
+          k_new[i] = k_new_atomframe[i];
   }
   else
   {
@@ -285,60 +258,42 @@ double DustModuleDahlia::DustConversionFactor()
   return ratiometaldust;
   
 }
-/*
-int DustModuleDahlia::ConvertDust(MultiFab& fab,const double dx)
-{
-  //expected input units; hydrogen number density in 1/m^3, metallicity z.
-  //needed; dust density in g/m^3. 
-  const double mh = 1.6726219e-24;
- 
-  
-  for (MFIter mfi(fab); mfi.isValid(); ++mfi)
-  {
-    FArrayBox& b = fab[mfi];
 
-    const Box& box = mfi.validbox();
-    const int* lo = box.loVect();
-    const int* hi = box.hiVect();
-    //next line removes dust where T>100000 K
-//     BL_FORT_PROC_CALL(DUST_AND_TEMPERATURE,dust_and_temperature)
-//       (BL_TO_FORTRAN(b),&Sedona::NUM_STATE, lo, hi, &dx, &Sedona::Temp,&Sedona::rhoZ);
-  }
-  //next line converts yields metal mass density in units of hydrogen atoms per m^3
-  fab.Multiply(fab,fab,Sedona::Density,Sedona::rhoZ,1,fab.nGrow());
-  //next line converts into g/m^3
-  double dust_conversion_factor=DustConversionFactor()*mh;
-  fab.mult(dust_conversion_factor,Sedona::rhoZ,1,fab.nGrow());
-  return 0;
-}*/
 
 DustModuleDahlia::DustModuleDahlia()
 {
   init();
   LParmParse pp;
-  //setup the absorption cross section
+  //setup the absorption cross section. The values are from the Weingartner-Draine models, http://adsabs.harvard.edu/abs/2001ApJ...548..296W
+  //The tables for this data can be also found on Draines website. We use the older tables, e.g. ftp://ftp.astro.princeton.edu/draine/dust/mix/kext_albedo_WD_MW_3.1_60
+  //in order to be consistent with SKIRT.
+
   std::string dust_type("MW");
   pp.query("dust.dahlia.type",dust_type);
   if(!dust_type.compare("MW"))
   {
     if(Parallel::IOProcessor())
         std::cout << "DustModuleDahlia(): Using MW dust." << std::endl;
-    //from ftp://ftp.astro.princeton.edu/draine/dust/mix/kext_albedo_WD_MW_3.1_60_D03.all for the MW, R_V=3.1
-    tauConst = 5.802E+04;
+    tauConst = 1.009882e+05;
+    albedo = 0.3279;
+    G_Greenstein = 0.6776;
+    
   }
   if(!dust_type.compare("LMC"))
   {
     if(Parallel::IOProcessor())
         std::cout << "DustModuleDahlia(): Using LMC dust." << std::endl;
-    //from ftp.astro.princeton.edu/draine/dust/mix/kext_albedo_WD_LMCavg_20
-    tauConst = 7.252E+04;
+    tauConst = 104279.8;
+    albedo = 0.3136;
+    G_Greenstein = 0.6316;
   }
   if(!dust_type.compare("SMC"))
   {
     if(Parallel::IOProcessor())
         std::cout << "DustModuleDahlia(): Using SMC dust." << std::endl;
-    //from ftp://ftp.astro.princeton.edu/draine/dust/mix/kext_albedo_WD_SMCbar_0
-    tauConst = 7.169E+04;
+    tauConst = 115654.5;
+    albedo = 0.3395;
+    G_Greenstein = 0.5909;
   }
   if(tauConst<0.0)
   {
@@ -349,7 +304,7 @@ DustModuleDahlia::DustModuleDahlia()
 }
 double DustModuleDahlia::tauConstFactor()
 {
-  return 72520.0; //from Weingartner & Draine (2001) and Li & Draine (2001) for the LMC at the Lyman alpha line center. is in units of cm^2/g
+  return tauConst; //from Weingartner & Draine (2001) and Li & Draine (2001) for the LMC at the Lyman alpha line center. is in units of cm^2/g
   //in integrate tau, CodeUnits_Density will eat up the m^3 in the dust density.
   //to be more precise, this is the value of K_abs at 1216 Angstrom in the table on Draines website,
   //ftp://ftp.astro.princeton.edu/draine/dust/mix/kext_albedo_WD_LMCavg_20
@@ -364,9 +319,7 @@ double DustModuleDahlia::getAlbedo()
 double DustModuleDahlia::ConvertDust(double density, double temperature, double metallicity)
 {
     const double mh = 1.6726219e-24;//g
-    //TODO add temperature floor
-//     if(temperature>1e5)
-//         return 0.0;
+
     double metal_density = density*metallicity;
     double dust_conversion_factor = DustConversionFactor()*mh;
     return dust_conversion_factor*metal_density;

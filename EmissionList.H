@@ -21,8 +21,6 @@ class Emitter{
 	double sfr;
 
 	private:
-
-
 };
 
 class EmissionList{
@@ -38,9 +36,7 @@ class EmissionList{
 	bool isInside(double x,double y,double z);
 	void setUpBoundingBox(double lox,double loy,double loz,double hix,double hiy,double hiz);
 	void setFixedWidth(double w);
-
-        unsigned int size();
-
+    unsigned int size();
 
 	private:
 	void init();
@@ -48,9 +44,5 @@ class EmissionList{
 	double boundingBoxHi[3];
 	double fixedWidth;
 	std::vector<Emitter> e;
-
-
-
-
 };
 #endif

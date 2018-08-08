@@ -7,7 +7,6 @@
 double rtsafe(void (*funcd)(double, double *, double *), double x1, double x2,
 	double xacc)
 {
-	
 	int j;
 	double df,dx,dxold,f,fh,fl;
 	double temp,xh,xl,rts;

@@ -46,13 +46,10 @@ const BaseCell* SphericalShellData::data_at(const double x[3], const double k[3]
         if(p1 >= 0.0 && p2 >= 0.0)
             pathlength = std::min(p1,p2);
         else
-            pathlength = std::max(p1,p2);
-//         std::cout << "Comparing " << p1 << " and " << p2 << std::endl;
-        
+            pathlength = std::max(p1,p2);        
     }
     else
     {
-        
         mycell->density = 0.0;
         mycell->dust_density = 0.0;
         for(int i=0;i<3;i++)
@@ -65,22 +62,17 @@ const BaseCell* SphericalShellData::data_at(const double x[3], const double k[3]
             if(radius < params->inner_radius)
             {
                 p = intersection(x,k,params->inner_radius);
-//                 std::cout << "Distance to inner radius: " << p << std::endl;
             }
             else
             {
                 p = intersection(x,k,params->outer_radius);
-//                std::cout << "Distance to outer radius: " << p << std::endl;
             }
         }
         if(p<=0.0)
             pathlength = 1.0;
         else
             pathlength = p;
-        
     }
-    
-            
     if(pathlength!=pathlength)
     {
         std::cout << "Something went wrong; pathlength is NaN!" << std::endl;
@@ -88,8 +80,7 @@ const BaseCell* SphericalShellData::data_at(const double x[3], const double k[3]
         
     }
     pathlength = std::min(max_step,pathlength);
-    pathlength = std::max(1e-8,pathlength);
-    
+    pathlength = std::max(min_step,pathlength);
     return mycell;
 }
 
@@ -120,7 +111,6 @@ int SphericalShellData::setup()
  {
      std::cout << "Please provide either density_dust or column_density_dust" << std::endl;
      std::abort();
-     
  }
  pp.get("shell.inner_radius",params->inner_radius);
  pp.get("shell.outer_radius",params->outer_radius);
@@ -168,13 +158,7 @@ int SphericalShellData::setup()
 if(Parallel::IOProcessor())
 {
     std::cout << "Configured spherical shell with density " << params->density << " dust density " << params->density_dust <<  std::endl;
-    
 }
- 
- 
- 
- 
- 
  return 0;   
 }
 
@@ -183,7 +167,6 @@ int SphericalShellData::set_parameters(ShellParameters sh)
     params = new ShellParameters;
     *params = sh; 
     return 0;
-    
 }
 
 
@@ -191,7 +174,6 @@ int SphericalShellData::set_parameters(ShellParameters sh)
 double SphericalShellData::intersection(const double x[3], const double k[3],double radius) const
 {
     //figure out the distance to the sphere to speed up.
-    
     //for reference, see wikipedia: https://en.wikipedia.org/wiki/Line–sphere_intersection
     
     double ominusc[3];
@@ -217,6 +199,4 @@ double SphericalShellData::intersection(const double x[3], const double k[3],dou
         else
             return std::max(solution1,solution2);
     }
-    
-    
 }

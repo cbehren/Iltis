@@ -7,8 +7,8 @@
 #include <string>
 #include <vector> 
 
-//here is where the magic happens. Defines the main simulation object, running the main loop(s).
-
+//enable or disable acceleration scheme for extremely high optical depth
+//#define NEUFELD_ACCELERATION_SCHEME
 
 class BaseSimulation{
 public:

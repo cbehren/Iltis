@@ -10,6 +10,8 @@ public:
     int setup();
     double get_dx(const double x[3],DatasetStatus &status) const {return dx;}
     int set_domain(BaseParticleVector *vp) const {return 0;}
+    void get_optical_depth_stats();
+    const int get_nearest_face(const double x[3],double *orth_distance, double distance[3]) const;
 private:
     BaseCell* cells = NULL;
     int ngrid;
