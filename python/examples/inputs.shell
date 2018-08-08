@@ -1,0 +1,16 @@
+shell.inner_radius=0.0
+shell.outer_radius=0.5
+boxsize = 3.51e19 #cm
+redshift = 0.0
+rng.seed = 123
+no_hubble_flow = true
+use_peeling_off = true
+number_of_instruments = 1
+line_of_sight = 1 0 0
+#shell.column_density = 3e20 #cm^-2
+shell.density = 189.0 #cm^-3
+shell.column_density_dust = 0.0
+shell.outflow_velocity = 300e5 #cm/s
+shell.temperature = 96878.0 # K
+number_of_photons = 40000
+max_step = 1e-4

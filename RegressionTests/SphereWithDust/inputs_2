@@ -1,0 +1,13 @@
+#file written by params_file class
+#tau0 628882.37508973794 taud 0.0025 a*tau0 7566.7127370797261
+dataset_type=InfiniteSlab
+boxsize=3.086e+21
+redshift=0.0
+no_hubble_flow=true
+rng.seed=1234
+number_of_photons=10000
+dust.model=Dahlia
+dust.albedo=0.0
+slab.temperature=15.2587890625
+slab.density_dust=1.6045336432720638e-29
+slab.density=0.00027129751392185303
