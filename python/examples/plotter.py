@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 sys.path.append("..")
-from LLTCPlotter import LLTCPlotter
+from IltisPlotter import IltisPlotter
 import matplotlib.pyplot as plt
 
 fig_size = np.zeros(2)
@@ -28,10 +28,10 @@ params["operators"] = ["massWeightedDensity","columnDensity","slice"]
 params["npixels"] = 64 #**2 is the number of pixels
 params["oversampling"] = 1 #useless at the moment, but always set it to 1.
 fname ="inputs.shell" #the paramter file we are hooking onto.
-#l=LLTCPlotter(fname,params,dry=True)#do not run it, print the function call instead.
-l=LLTCPlotter(fname,params,dry=False)#run it
+#l=IltisPlotter(fname,params,dry=True)#do not run it, print the function call instead.
+l=IltisPlotter(fname,params,dry=False)#run it
 l.store("plotter.pickle")#store to pickle
-l = LLTCPlotter.from_file("plotter.pickle")#load from pickle
+l = IltisPlotter.from_file("plotter.pickle")#load from pickle
 #optical depth grid and slice return a list/a dictionary of variables:
 print l.data["slice"].keys()
 for dset in l.data:

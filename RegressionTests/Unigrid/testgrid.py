@@ -1,4 +1,4 @@
-#generates a uniform grid for usage with LLTC. 
+#generates a uniform grid for usage with Iltis. 
 #the first line of the output file should contain #<gridsize>, with gridsize**3 being the total number of cells in the grid. 
 #each line of the input file should contain the following quantities:
 #neutral hydrogen density in 1/cm^3

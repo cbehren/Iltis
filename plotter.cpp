@@ -5,8 +5,6 @@
 int main(int argc,char* args[])
 {
     Parallel::StartParallel();
-    if(Parallel::IOProcessor())
-        std::cout << "Light-weight Line Transfer Code - LLTC\n";
     //Initialize the parameter file reader
     if(argc<2)
     {

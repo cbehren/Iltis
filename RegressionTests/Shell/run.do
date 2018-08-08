@@ -1,2 +1,2 @@
-mpirun -np 8 ../../LLTC.exe inputs
+mpirun -np 8 ../../Iltis.exe inputs
 sh generate.sh

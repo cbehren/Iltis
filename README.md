@@ -1,13 +1,13 @@
-# LLTC,
+# Iltis,
 
-or _Iltis_, a light-weight line emission transfer code
+a light-weight line emission transfer code
 
 ## Requirements
 
 You will need
 - a C++ compiler ready for C++11 features
 - MPI libraries/headers
-- The BaseOctet template class (resides in a private repo on Bitbucket), cloned into ../BaseOctet if . is the LLTC directory
+- The BaseOctet template class (resides in a private repo on Bitbucket), cloned into ../BaseOctet if . is the Iltis directory
 - for the python tools, you need an installation of Python 2
 - for the text2hdf5 files, you need the hdf5 library (also in the C++ flavor!), and probably you need to adapt the pathes in text2hdf5/Makefile 
 
@@ -19,7 +19,7 @@ Set CC to your preferred c++ compiler in Makefile and just do make!
 
 Run Iltis using
 
-./LLTC.exe \<inputs file\>
+./Iltis.exe \<inputs file\>
   
 For testing purposes, you can use the inputs file in RegressionTests/Shell (should also work on a Desktop
 
