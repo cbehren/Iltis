@@ -15,7 +15,7 @@ void read_meta(metadata& meta)
     
     bool has_shifted = false;
     meta.redshift = 0.0;
-    meta.redshiftShifted = 0.0;
+    meta.redshift_shifted = 0.0;
     meta.lengthOfBox = -1.0;
     meta.number_of_instruments = 0;
     meta.cutOffLength = -1.0;
@@ -23,10 +23,10 @@ void read_meta(metadata& meta)
     
     LParmParse pp;
     pp.query("redshift",meta.redshift);
-    if(pp.query("redshiftShifted",meta.redshiftShifted))
+    if(pp.query("redshift_shifted",meta.redshift_shifted))
         has_shifted = true;
     else
-        meta.redshiftShifted = meta.redshift;
+        meta.redshift_shifted = meta.redshift;
     std::string type("SphericalShell");
     pp.query("dataset_type",type);
     if(type.compare("Octet")==0 ||type.compare("SphericalShell")==0)
@@ -75,8 +75,8 @@ void write_meta_to_hdf5(hdf5_file& file,metadata& meta,int i)
 {
     file.create_attribute("redshift",meta.redshift);
     file.create_attribute("lengthOfBox",meta.lengthOfBox);
-    if(meta.redshiftShifted>0.0)
-        file.create_attribute("redshiftShifted",meta.redshiftShifted);
+    if(meta.redshift_shifted>0.0)
+        file.create_attribute("redshift_shifted",meta.redshift_shifted);
     file.create_attribute("number_of_instruments",meta.number_of_instruments);
     file.create_attribute("cutOffLength",meta.cutOffLength);
     std::string name("observationDirection");
