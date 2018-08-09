@@ -52,7 +52,24 @@ The spherical shell is a well-known, simple model of LAEs pioneered by Verhamme 
 
 A single, fixed grid read from disk, specifying the density, dust density, temperature, and velocity field in each cell. The format of the grid file is very simple and can be understood from the example in `RegressionTests/Unigrid/testgrid.py`: In short, the first line of the file should contain a hash, followed by the linear grid size. All other lines contain the data for one cell, in this order: density, temperature, velocity, dust density, each separated by a whitespace.
 
+### Regression Tests
 
+A number of tests is included in the repository. Most of them comes with a `plot.py` script to plot the results. 
+
+#### `NeufeldSolutionAcceleration`
+Tests the implementation of the Neufeld acceleration scheme, that is, compares the analytic PDFs for exit direction/frequency with the ones from Iltis. To run it, you need `make`the executable and run it. 
+#### `Shell`
+Standard test with the spherical shell model. The plotting script compares to old data in an HDF5 file.
+#### `Unigrid`
+Shell-like test, but based on the Unigrid geometry. You need to create the grid file before running the test, using `testgrid.py`.
+#### `Redistribution`
+Tests the redistribution function against the known, analytic solution. To run it, you need `make`the executable and run it. 
+#### `Sphere`
+Standard test of a homogeneous, static sphere. Compares with analytic solution.
+#### `RejectionMethod`
+Tests whether the rejection method used in obtaining the parallel velocity of a scattering atom recovers the analytic PDF correctly. To run it, you need `make`the executable and run it. 
+#### `SphereWithDust`
+Standard test of a dusty, homogeneous sphere. Test the escape fraction as a function of optical depth in gas/dust. Includes an ipython notebook for comparison.
 
 
 ### Parameters
