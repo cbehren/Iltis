@@ -57,8 +57,8 @@ The infinite slab is a frequently used test problem. It considers a slab of gas,
 - `cosmology.Omega_L`: Omega Lambda
 - `cosmology.Omega_M`: Omega Matter
 - `redshift`: redshift of the simulation, used to calculate the Hubble flow rate if not overriden by hubble_flow
-- `redshiftShifted`: TODO rename
-- `hubbleFlow`: if set, determines the hubble rate in km/s/Mpc. TODO rename
+- `redshift_shifted`: deprecated
+- `hubble_flow`: if set, determines the hubble rate in km/s/Mpc. 
 - `no_hubble_flow`: set to true to disable the Hubble flow
 - `max_num_peeling_off_photons`: maximum number of peeling off photons launched in one go (to cope with memory limitations)
 - `max_step`: the maximum allowed spatial size of a step a photon makes in code units. Main purpose is to limit the space a photon travels between two evaluations of the Hubble flow the photon sees
@@ -66,7 +66,6 @@ The infinite slab is a frequently used test problem. It considers a slab of gas,
 - `minimum_bias`: sets the bias factor below which photons are disarded
 - `number_of_instruments`: the total number of virtual instruments used for the peeling off algorithm
 - `number_of_photons`: the total number of photons launched. Might be overwritten by `emission.minimum_number_of_photons_per_source`
-- `split_domain`: TODO dont remember this one
 - `tau_max`: the optical depth above which we discard peeling off photons
 
 
@@ -117,44 +116,8 @@ The infinite slab is a frequently used test problem. It considers a slab of gas,
 - `slab.temperature`: temperature of the gas in the slab
 
 
-#### TPG 
-- `tpg.max_refinement_level`: maximum refinement level in TPG 
-- `tpg.refine_on_density`: density threshold we need to reach in order to refine a cell
-- `tpg.rootlevel`: the root level of the initial grid, with 2^rootlevel being the linear size of grid
-
 #### Unigrid
 - `unigrid.filename`: filename for reading in the grid
 - `unigrid.output_tau_stats`: set to true to generate statistics on the optical depths in the grid
 
 
-#### Octet
-- `octet.distribution_method`: 
-- `octet.distribution_method.row_dir`: 
-- `octet.name`: 
-- `octet.root`: 
-- `octet.rootlevel`: 
-
-#### Ramses
-- `ramses.distribution_method`: 
-- `ramses.distribution_method.row_dir`: 
-- `ramses.ionize_cells`: 
-- `ramses.ionize_cells.remove_dust`: 
-- `ramses.output_tau_stats`: 
-- `ramses.root`: 
-- `ramses.scale_density`: 
-- `ramses.scale_dust_density`: 
-- `ramses.scale_velocity`: 
-- `ramses.star_file`: 
-
-#### Plotter
-
-- `plotter.depth`: 
-- `plotter.npixels`: 
-- `plotter.opticalDepth.wavelength`: 
-- `plotter.opticalDepthGrid.divide_by_density`: 
-- `plotter.opticalDepthGrid.lambda_left`: 
-- `plotter.opticalDepthGrid.lambda_right`: 
-- `plotter.opticalDepthGrid.nlambda`: 
-- `plotter.output_prefix`: 
-- `plotter.oversampling`: 
-- `plotter.width`: 
