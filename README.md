@@ -146,14 +146,14 @@ Standard test of a dusty, homogeneous sphere. Test the escape fraction as a func
 - `unigrid.filename`: filename for reading in the grid
 - `unigrid.output_tau_stats`: set to true to generate statistics on the optical depths in the grid
 
-
 ### preprocessor parameters
 #### defined in `LymanAlphaLine.H`
-`USE_ACCELERATION`: use an acceleration scheme based on truncating the scattering atoms' velocitiy to avoid core scatterings
-`FULL_ACC`: truncate at a fixed value of the dimensionless frequency, x, in the atom's frame. If not defined, use a scheme by Laursen et al. 2008 to dynamically determine the cutoff value
-`ÀCC_XCRIT`: the fixed value at which we truncate in case ``FULL_ACC`` is defined
-`DIPOLE_SCATTERING`: instead of an isotropic phase function, use a dipole
-`X_CRIT_DIPOLE`: use dipole scattering above this value (dimensionless frequency)
-#### defined in `BaseSimulation.H`
-`NEUFELD_ACCELERATION_SCHEME`: use a semi-analytic scheme to exit cells with extremely high optical depths, see Laursen et al. 2008 for details
+- `USE_ACCELERATION`: use an acceleration scheme based on truncating the scattering atoms' velocitiy to avoid core scatterings
+- `FULL_ACC`: truncate at a fixed value of the dimensionless frequency, x, in the atom's frame. If not defined, use a scheme by Laursen et al. 2008 to dynamically determine the cutoff value
+- `ÀCC_XCRIT`: the fixed value at which we truncate in case ``FULL_ACC`` is defined
+- `DIPOLE_SCATTERING`: instead of an isotropic phase function, use a dipole
+- `X_CRIT_DIPOLE`: use dipole scattering above this value (dimensionless frequency)
 
+#### defined in `BaseSimulation.H`
+
+- `NEUFELD_ACCELERATION_SCHEME`: use a semi-analytic scheme to exit cells with extremely high optical depths, see Laursen et al. 2008 for details
