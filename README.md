@@ -38,11 +38,20 @@ The code follows Zheng et al. 2002, Laursen et al. 2009, Dijkstra et al. 2006 in
 
 Iltis is relatively agnostic about the way the geometry of the problem, that is, density, velocity, temperature, .., fields are configured. It is therefore not very complicated to add own datasources. In this release, only the SphericalShell, the InfiniteSlab, and the Unigrid datasource/problem type are included. An implementation for reading and using Ramses files is available on request.
 
-### Problem types
+### Problem/Dataset types
 
-#### The InfiniteSlab
+#### InfiniteSlab
 
-The infinite slab is a frequently used test problem. It considers a slab of gas, infinite in two dimensions, and finite in one, with a length 2 times `boxsize`. Together with the column_density (or density), the column_density_dust (or dust_density), and the temperature, this defines the problem.  
+The infinite slab is a frequently used test problem. It considers a slab of gas, infinite in two dimensions, and finite in one, with a length 2 times `boxsize`. The problem is completely specified by (colum) density, dust (column) density, and temperature. 
+
+#### SphericalShell
+
+The spherical shell is a well-known, simple model of LAEs pioneered by Verhamme et al. 2006. It considers a spherical shell with an inner and outer radius, a gas/dust (column) density, a temperature, and an constant outflow velocity.
+
+#### Unigrid   
+
+A single, fixed grid read from disk, specifying the density, dust density, temperature, and velocity field in each cell. The format of the grid file is very simple and can be understood from the example in `RegressionTests/Unigrid/testgrid.py`: In short, the first line of the file should contain a hash, followed by the linear grid size. All other lines contain the data for one cell, in this order: density, temperature, velocity, dust density, each separated by a whitespace.
+
 
 
 
@@ -120,4 +129,14 @@ The infinite slab is a frequently used test problem. It considers a slab of gas,
 - `unigrid.filename`: filename for reading in the grid
 - `unigrid.output_tau_stats`: set to true to generate statistics on the optical depths in the grid
 
+
+### preprocessor parameters
+#### defined in `LymanAlphaLine.H`
+`USE_ACCELERATION`: use an acceleration scheme based on truncating the scattering atoms' velocitiy to avoid core scatterings
+`FULL_ACC`: truncate at a fixed value of the dimensionless frequency, x, in the atom's frame. If not defined, use a scheme by Laursen et al. 2008 to dynamically determine the cutoff value
+`ÀCC_XCRIT`: the fixed value at which we truncate in case ``FULL_ACC`` is defined
+`DIPOLE_SCATTERING`: instead of an isotropic phase function, use a dipole
+`X_CRIT_DIPOLE`: use dipole scattering above this value (dimensionless frequency)
+#### defined in `BaseSimulation.H`
+`NEUFELD_ACCELERATION_SCHEME`: use a semi-analytic scheme to exit cells with extremely high optical depths, see Laursen et al. 2008 for details
 
