@@ -3,7 +3,7 @@ from collections import OrderedDict
 class params_file(OrderedDict):
 
     def __init__(self,fname=None):
-        self.float_types = ["cosmology.H0","cosmology.Omega_M","cosmology.Omega_L","boxsize","redshift","hubbleFlow","tau_max","dust.albedo",
+        self.float_types = ["cosmology.H0","cosmology.Omega_M","cosmology.Omega_L","boxsize","redshift","hubble_flow","tau_max","dust.albedo",
 "dust.dust_metal_ratio","slab.column_density","slab.column_density_dust","slab.density","slab.density_dust","max_step",
 "emission.minimum_luminosity","ramses.scale_density","ramses.scale_dust_density","shell.column_density","shell.column_density_dust",
 "shell.density","shell.density_dust""emission.fixed_width","slab.temperature","shell.inner_radius","shell.outer_radius","shell.temperature","shell.outflow_velocity",]

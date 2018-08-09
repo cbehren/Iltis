@@ -88,34 +88,34 @@ void BaseEmissionLine::setup()
         
     }
     //figure out the hubble flow parameter.
-    double hubbleFlow = 0;
+    double hubble_flow = 0;
     double redshift = -1;
     if(pp.query("redshift",redshift))
     {
         
-        if(pp.query("hubbleFlow",hubbleFlow))
+        if(pp.query("hubble_flow",hubble_flow))
         {
             std::cout << "Cant use both redshift and hubble flow value!" << std::endl;
             std::abort();
         }
-        hubbleFlow = getHofz(redshift);//km/s/Mpc.
+        hubble_flow = getHofz(redshift);//km/s/Mpc.
         
     }
     else
     {
-        pp.query("hubbleFlow",hubbleFlow);
+        pp.query("hubble_flow",hubble_flow);
         
     }
     //convert to cm/s/boxsize.
     bool no_hubble_flow;
     if(pp.query("no_hubble_flow",no_hubble_flow) && no_hubble_flow)
-        hubbleFlow = 0.0;
-    if(Parallel::IOProcessor() && hubbleFlow != 0.0)
-        std::cout << "Using Hubble flow of " << hubbleFlow << " km/s/Mpc." << std::endl;
-    hubbleFlow *= 1e5;//cm/s/Mpc
-    hubbleFlow /= (3.086e+24/boxsize);
+        hubble_flow = 0.0;
+    if(Parallel::IOProcessor() && hubble_flow != 0.0)
+        std::cout << "Using Hubble flow of " << hubble_flow << " km/s/Mpc." << std::endl;
+    hubble_flow *= 1e5;//cm/s/Mpc
+    hubble_flow /= (3.086e+24/boxsize);
     
-    hubble_flow_value = hubbleFlow;
+    hubble_flow_value = hubble_flow;
 //     std::cout << hubble_flow_value << std::endl;
         
         
