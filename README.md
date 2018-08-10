@@ -1,6 +1,6 @@
 # Iltis,
 
-a light-weight line emission transfer code
+a light-weight line emission transfer code specialized on the Lyman-$\alpha$ line
 
 ## Requirements
 
@@ -27,8 +27,9 @@ For testing purposes, you can use the inputs file in `RegressionTests/Shell` (sh
 
 ## Known Issues
 
+tbd
 
-## A quick documentation
+## Documentation
 
 ### Introduction
 
@@ -71,6 +72,28 @@ Tests whether the rejection method used in obtaining the parallel velocity of a 
 #### `SphereWithDust`
 Standard test of a dusty, homogeneous sphere. Test the escape fraction as a function of optical depth in gas/dust. Includes an ipython notebook for comparison.
 
+### How to extend Iltis
+
+Iltis is written in a modular way as far as possible, so that e.g. the dust treatment, the calculation of the neutral fraction, and most importantly the type of dataset used can be changed without too many changes to the main code.
+
+##### Use custom datasets
+
+To import data from, for example, a hydrodynamical simulation given in a specific format, the following steps are necessary:
+
+- derive a new clas from `BaseDataset`
+- implement all the necessary virtual functions of the base class, namely:
+    `setup`:  loads the needed data from disk
+    `get_data_at`: gives access to the hydro data at a given position in terms of a cell object, and the pathlength spent in that cell
+    `get_dx`: returns the linear cell size (in code units) at a given positions
+    `get_nearest_face`: given a position, returns the distance vector and surface normal to the nearest cell face (needs only to be implemented for the Neufeld acceleration scheme)
+    `set_domain`: given a particle vector, sets the order of each particle to the ID of the process it belongs to. Only needed if considering distributed data.
+
+A practical example can be seen in the `Unigrid` class. 
+
+
+#### Use custom dust treatment/other physic modules
+
+To include a different dust treatment, one needs to derive a class from `DustModule`, and implement the virtual functions in it, most notably `scatter` determining the scattering physics. An example can be seen in `DustModuleDahlia`. Note that the release dataset types do not support `ConvertDust`, i.e. they expect the actual density of dust being set in the input. 
 
 ### Parameters
 #### general parameters
