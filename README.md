@@ -82,10 +82,15 @@ To import data from, for example, a hydrodynamical simulation given in a specifi
 
 - derive a new clas from `BaseDataset`
 - implement all the necessary virtual functions of the base class, namely:
+
     `setup`:  loads the needed data from disk
+    
     `get_data_at`: gives access to the hydro data at a given position in terms of a cell object, and the pathlength spent in that cell
+
     `get_dx`: returns the linear cell size (in code units) at a given positions
+    
     `get_nearest_face`: given a position, returns the distance vector and surface normal to the nearest cell face (needs only to be implemented for the Neufeld acceleration scheme)
+    
     `set_domain`: given a particle vector, sets the order of each particle to the ID of the process it belongs to. Only needed if considering distributed data.
 
 A practical example can be seen in the `Unigrid` class. 
