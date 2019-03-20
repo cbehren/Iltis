@@ -27,7 +27,7 @@ For testing purposes, you can use the inputs file in `RegressionTests/Shell` (sh
 
 ## Known Issues
 
-tbd
+The Neufeld scheme is currently not working correctly. Some of the dataset types, like the InfiniteSlab, have only been marginally tested.
 
 ## Documentation
 
