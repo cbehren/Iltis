@@ -1,33 +1,104 @@
 # Iltis,
 
-a light-weight line emission transfer code
+a light-weight line emission transfer code specialized on the Lyman-$\alpha$ line
 
 ## Requirements
 
-You will need
-- a C++ compiler ready for C++11 features
-- MPI libraries/headers
-- The BaseOctet template class (resides in a private repo on Bitbucket), cloned into ../BaseOctet if . is the Iltis directory
-- for the python tools, you need an installation of Python 2
-- for the text2hdf5 files, you need the hdf5 library (also in the C++ flavor!), and probably you need to adapt the pathes in text2hdf5/Makefile 
+You will need at least
+- a C++ compiler with C++11 features
+- OpenMP support is required, although you can just remove the -fopenmp option in the `Makefile` to get around this
+
+Additionally, it is useful to have
+- MPI libraries/headers to run in MPI parallel mode
+- for the Python tools, you need an installation of Python 2
+- for the tools that convert the output to HDF5 (in `./text2hdf5/`), you need the HDF5 library (also in the C++ flavor!), and probably you need to adapt the pathes in `text2hdf5/Makefile` 
 
 ## Installation
 
-Set CC to your preferred c++ compiler in Makefile and just do make!
+Set CC to your preferred C++ compiler in `Makefile` and just do `make`
 
 ## Usage
 
 Run Iltis using
 
-./Iltis.exe \<inputs file\>
+`./Iltis.exe \<inputs file\>`
   
-For testing purposes, you can use the inputs file in RegressionTests/Shell (should also work on a Desktop
+For testing purposes, you can use the inputs file in `RegressionTests/Shell` (should also work on a Desktop)
 
 ## Known Issues
 
-The strict MPI requirement comes from the fact that the BaseOctet template used is not able to build without MPI. I need to fix that at some point.
+The Neufeld scheme is currently not working correctly. Some of the dataset types, like the InfiniteSlab, have only been marginally tested.
+
+## Documentation
+
+### Introduction
+
+Iltis is a Monte-Carlo radiative transfer code specialized on the Lyman-$\alpha$ line. However, it is relatively simple to change the code to run with a different emission line. At startup, all necessary parameters for a run a read from parameter file that is given as the only argument to the executable. Besides the parameters in those files, there are a few preprocessor directives in use, mainly for the acceleration schemes implemented to speed up the RT.
+
+The code follows Zheng et al. 2002, Laursen et al. 2009, Dijkstra et al. 2006 in terms of the RT scheme. Detailed references are given in the code.
+
+Iltis is relatively agnostic about the way the geometry of the problem, that is, density, velocity, temperature, .., fields are configured. It is therefore not very complicated to add own datasources. In this release, only the SphericalShell, the InfiniteSlab, and the Unigrid datasource/problem type are included. An implementation for reading and using Ramses files is available on request.
+
+### Problem/Dataset types
+
+#### InfiniteSlab
+
+The infinite slab is a frequently used test problem. It considers a slab of gas, infinite in two dimensions, and finite in one, with a length 2 times `boxsize`. The problem is completely specified by (colum) density, dust (column) density, and temperature. 
+
+#### SphericalShell
+
+The spherical shell is a well-known, simple model of LAEs pioneered by Verhamme et al. 2006. It considers a spherical shell with an inner and outer radius, a gas/dust (column) density, a temperature, and an constant outflow velocity.
+
+#### Unigrid   
+
+A single, fixed grid read from disk, specifying the density, dust density, temperature, and velocity field in each cell. The format of the grid file is very simple and can be understood from the example in `RegressionTests/Unigrid/testgrid.py`: In short, the first line of the file should contain a hash, followed by the linear grid size. All other lines contain the data for one cell, in this order: density, temperature, velocity, dust density, each separated by a whitespace.
+
+### Regression Tests
+
+A number of tests is included in the repository. Most of them comes with a `plot.py` script to plot the results. 
+
+#### `NeufeldSolutionAcceleration`
+Tests the implementation of the Neufeld acceleration scheme, that is, compares the analytic PDFs for exit direction/frequency with the ones from Iltis. To run it, you need `make`the executable and run it. 
+#### `Shell`
+Standard test with the spherical shell model. The plotting script compares to old data in an HDF5 file.
+#### `Unigrid`
+Shell-like test, but based on the Unigrid geometry. You need to create the grid file before running the test, using `testgrid.py`.
+#### `Redistribution`
+Tests the redistribution function against the known, analytic solution. To run it, you need `make`the executable and run it. 
+#### `Sphere`
+Standard test of a homogeneous, static sphere. Compares with analytic solution.
+#### `RejectionMethod`
+Tests whether the rejection method used in obtaining the parallel velocity of a scattering atom recovers the analytic PDF correctly. To run it, you need `make`the executable and run it. 
+#### `SphereWithDust`
+Standard test of a dusty, homogeneous sphere. Test the escape fraction as a function of optical depth in gas/dust. Includes an ipython notebook for comparison.
+
+### How to extend Iltis
+
+Iltis is written in a modular way as far as possible, so that e.g. the dust treatment, the calculation of the neutral fraction, and most importantly the type of dataset used can be changed without too many changes to the main code.
+
+##### Use custom datasets
+
+To import data from, for example, a hydrodynamical simulation given in a specific format, the following steps are necessary:
+
+- derive a new clas from `BaseDataset`
+- implement all the necessary virtual functions of the base class, namely:
+
+    `setup`:  loads the needed data from disk
+    
+    `get_data_at`: gives access to the hydro data at a given position in terms of a cell object, and the pathlength spent in that cell
+
+    `get_dx`: returns the linear cell size (in code units) at a given positions
+    
+    `get_nearest_face`: given a position, returns the distance vector and surface normal to the nearest cell face (needs only to be implemented for the Neufeld acceleration scheme)
+    
+    `set_domain`: given a particle vector, sets the order of each particle to the ID of the process it belongs to. Only needed if considering distributed data.
+
+A practical example can be seen in the `Unigrid` class. 
 
 
+#### Use custom dust treatment/other physic modules
+
+To include a different dust treatment, one needs to derive a class from `DustModule`, and implement the virtual functions in it, most notably `scatter` determining the scattering physics. An example can be seen in `DustModuleDahlia`. Note that the release dataset types do not support `ConvertDust`, i.e. they expect the actual density of dust being set in the input. 
 
 ### Parameters
 #### general parameters
@@ -40,8 +111,8 @@ The strict MPI requirement comes from the fact that the BaseOctet template used 
 - `cosmology.Omega_L`: Omega Lambda
 - `cosmology.Omega_M`: Omega Matter
 - `redshift`: redshift of the simulation, used to calculate the Hubble flow rate if not overriden by hubble_flow
-- `redshiftShifted`: TODO rename
-- `hubbleFlow`: if set, determines the hubble rate in km/s/Mpc. TODO rename
+- `redshift_shifted`: deprecated
+- `hubble_flow`: if set, determines the hubble rate in km/s/Mpc. 
 - `no_hubble_flow`: set to true to disable the Hubble flow
 - `max_num_peeling_off_photons`: maximum number of peeling off photons launched in one go (to cope with memory limitations)
 - `max_step`: the maximum allowed spatial size of a step a photon makes in code units. Main purpose is to limit the space a photon travels between two evaluations of the Hubble flow the photon sees
@@ -49,7 +120,6 @@ The strict MPI requirement comes from the fact that the BaseOctet template used 
 - `minimum_bias`: sets the bias factor below which photons are disarded
 - `number_of_instruments`: the total number of virtual instruments used for the peeling off algorithm
 - `number_of_photons`: the total number of photons launched. Might be overwritten by `emission.minimum_number_of_photons_per_source`
-- `split_domain`: TODO dont remember this one
 - `tau_max`: the optical depth above which we discard peeling off photons
 
 
@@ -100,44 +170,18 @@ The strict MPI requirement comes from the fact that the BaseOctet template used 
 - `slab.temperature`: temperature of the gas in the slab
 
 
-#### TPG 
-- `tpg.max_refinement_level`: maximum refinement level in TPG 
-- `tpg.refine_on_density`: density threshold we need to reach in order to refine a cell
-- `tpg.rootlevel`: the root level of the initial grid, with 2^rootlevel being the linear size of grid
-
 #### Unigrid
 - `unigrid.filename`: filename for reading in the grid
 - `unigrid.output_tau_stats`: set to true to generate statistics on the optical depths in the grid
 
+### preprocessor parameters
+#### defined in `LymanAlphaLine.H`
+- `USE_ACCELERATION`: use an acceleration scheme based on truncating the scattering atoms' velocitiy to avoid core scatterings
+- `FULL_ACC`: truncate at a fixed value of the dimensionless frequency, x, in the atom's frame. If not defined, use a scheme by Laursen et al. 2008 to dynamically determine the cutoff value
+- `ÀCC_XCRIT`: the fixed value at which we truncate in case ``FULL_ACC`` is defined
+- `DIPOLE_SCATTERING`: instead of an isotropic phase function, use a dipole
+- `X_CRIT_DIPOLE`: use dipole scattering above this value (dimensionless frequency)
 
-#### Octet
-- `octet.distribution_method`: 
-- `octet.distribution_method.row_dir`: 
-- `octet.name`: 
-- `octet.root`: 
-- `octet.rootlevel`: 
+#### defined in `BaseSimulation.H`
 
-#### Ramses
-- `ramses.distribution_method`: 
-- `ramses.distribution_method.row_dir`: 
-- `ramses.ionize_cells`: 
-- `ramses.ionize_cells.remove_dust`: 
-- `ramses.output_tau_stats`: 
-- `ramses.root`: 
-- `ramses.scale_density`: 
-- `ramses.scale_dust_density`: 
-- `ramses.scale_velocity`: 
-- `ramses.star_file`: 
-
-#### Plotter
-
-- `plotter.depth`: 
-- `plotter.npixels`: 
-- `plotter.opticalDepth.wavelength`: 
-- `plotter.opticalDepthGrid.divide_by_density`: 
-- `plotter.opticalDepthGrid.lambda_left`: 
-- `plotter.opticalDepthGrid.lambda_right`: 
-- `plotter.opticalDepthGrid.nlambda`: 
-- `plotter.output_prefix`: 
-- `plotter.oversampling`: 
-- `plotter.width`: 
+- `NEUFELD_ACCELERATION_SCHEME`: use a semi-analytic scheme to exit cells with extremely high optical depths, see Laursen et al. 2008 for details
